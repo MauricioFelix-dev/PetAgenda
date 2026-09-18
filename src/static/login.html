@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PetAgenda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --cream:   #FAF6EF;
+            --green:   #2D5016;
+            --amber:   #C8861A;
+            --white:   #FFFFFF;
+            --text:    #2A2318;
+            --shadow:  0 8px 30px rgba(45,80,22,0.15);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--cream);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .login-box {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--green);
+            margin-bottom: 8px;
+        }
+        .logo span { color: var(--amber); }
+
+        .subtitulo {
+            color: #7A6A58;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus { border-color: var(--amber); }
+
+        .btn-login {
+            width: 100%;
+            background-color: var(--green);
+            color: var(--white);
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover { background-color: #4A7C2F; }
+
+        .mensagem-erro {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            display: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="logo">Pet<span>Agenda</span></div>
+        <div class="subtitulo">Acesso restrito para funcionários</div>
+
+        <form id="formLogin">
+            <div class="form-group">
+                <label>Login de Usuário</label>
+                <input type="text" id="login" placeholder="Ex: admin" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="senha" placeholder="••••••" required>
+            </div>
+
+            <button type="submit" class="btn-login">Entrar no Sistema</button>
+            <div id="mensagemErro" class="mensagem-erro">Login ou senha incorretos!</div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('formLogin').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const loginDigitado = document.getElementById('login').value;
+            const senhaDigitada = document.getElementById('senha').value;
+            const msgErro = document.getElementById('mensagemErro');
+
+            fetch('http://localhost:8080/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login: loginDigitado, senha: senhaDigitada })
+            })
+            .then(resposta => {
+                if (resposta.ok) {
+                    return resposta.json();
+                } else {
+                    throw new Error('Credenciais inválidas');
+                }
+            })
+            .then(dadosUsuario => {
+                // Se o login deu certo, guardamos uma "credencial" no navegador (Session Storage)
+                sessionStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
+                
+                // E redirecionamos para o painel!
+                window.location.href = 'dashboard.html';
+            })
+            .catch(erro => {
+                // Mostra a mensagem vermelha de erro
+                msgErro.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PetAgenda – Agendamentos para Pet Shops</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── RESET & VARIÁVEIS ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #FAF6EF;
+      --warm:    #F2E8D9;
+      --green:   #2D5016;
+      --green2:  #4A7C2F;
+      --amber:   #C8861A;
+      --amber2:  #E8A030;
+      --brown:   #6B4226;
+      --text:    #2A2318;
+      --muted:   #7A6A58;
+      --white:   #FFFFFF;
+      --shadow:  0 8px 40px rgba(45,80,22,.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMAÇÕES ─────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes floatPaw {
+      0%,100% { transform: translateY(0) rotate(-5deg); }
+      50%      { transform: translateY(-12px) rotate(5deg); }
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(200,134,26,.4); }
+      50%      { box-shadow: 0 0 0 14px rgba(200,134,26,0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ── NAV ───────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 6vw;
+      background: rgba(250,246,239,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(45,80,22,.08);
+      transition: box-shadow .3s;
+    }
+    nav.scrolled { box-shadow: var(--shadow); }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: -.5px;
+    }
+    .logo span { color: var(--amber); }
+
+    .nav-links {
+      display: flex; gap: 2rem; list-style: none; align-items: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: .92rem;
+      letter-spacing: .3px;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+
+    /* NOVO BOTÃO DA ÁREA RESTRITA */
+    .btn-login {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--green) !important;
+      font-weight: 700 !important;
+      border: 1px solid rgba(45,80,22,0.2);
+      padding: 0.4rem 1rem !important;
+      border-radius: 50px;
+      transition: all 0.2s;
+    }
+    .btn-login:hover {
+      background: rgba(45,80,22,0.05);
+      border-color: var(--green);
+    }
+
+    .btn-nav {
+      background: var(--green);
+      color: var(--white) !important;
+      padding: .5rem 1.3rem;
+      border-radius: 50px;
+      transition: background .2s, transform .2s !important;
+    }
+    .btn-nav:hover { background: var(--green2) !important; transform: scale(1.04); }
+
+    /* ── HERO ──────────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 120px 6vw 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 70% 40%, rgba(74,124,47,.13) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 20% 70%, rgba(200,134,26,.09) 0%, transparent 70%),
+        var(--cream);
+    }
+
+    .hero-content {
+      position: relative; z-index: 1;
+      max-width: 580px;
+      animation: fadeUp .9s ease both;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--warm);
+      border: 1px solid rgba(200,134,26,.3);
+      color: var(--amber);
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: .35rem 1rem;
+      border-radius: 50px;
+      margin-bottom: 1.4rem;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--green);
+      margin-bottom: 1.2rem;
+    }
+    h1 em {
+      font-style: normal;
+      color: var(--amber);
+      position: relative;
+    }
+    h1 em::after {
+      content: '';
+      position: absolute; left: 0; bottom: -3px;
+      width: 100%; height: 3px;
+      background: var(--amber2);
+      border-radius: 2px;
+    }
+
+    .hero-sub {
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin-bottom: 2.2rem;
+    }
+
+    .hero-cta {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: var(--white);
+      padding: .85rem 2.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .95rem;
+      letter-spacing: .3px;
+      border: none; cursor: pointer;
+      animation: pulse 2.8s ease infinite;
+      transition: background .2s, transform .15s;
+    }
+    .btn-primary:hover { background: var(--green2); transform: scale(1.04); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--green);
+      padding: .85rem 2.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .95rem;
+      border: 2px solid var(--green);
+      transition: all .2s;
+    }
+    .btn-secondary:hover {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    .hero-visual {
+      position: absolute; right: 6vw; top: 50%;
+      transform: translateY(-50%);
+      width: clamp(280px, 38vw, 480px);
+      animation: fadeUp 1.1s .3s ease both;
+    }
+
+    .hero-card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .paw-float {
+      position: absolute;
+      font-size: 2.8rem;
+      animation: floatPaw 3s ease-in-out infinite;
+    }
+    .paw1 { top: -18px; right: 24px; animation-delay: 0s; }
+    .paw2 { bottom: -14px; left: 20px; animation-delay: 1s; font-size: 1.8rem; }
+
+    .stat-row {
+      display: flex; gap: 1.2rem; margin-top: 1.2rem;
+    }
+    .stat {
+      flex: 1;
+      background: var(--warm);
+      border-radius: 14px;
+      padding: .9rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .stat-lbl {
+      font-size: .72rem;
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* ── SECTION TITLES ────────────────────────────────────── */
+    .section-label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: .6rem;
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      color: var(--green);
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      color: var(--muted);
+      max-width: 480px;
+      font-size: .97rem;
+    }
+
+    section { padding: 96px 6vw; }
+
+    /* ── SERVIÇOS ──────────────────────────────────────────── */
+    #servicos { background: var(--white); }
+
+    .section-head { margin-bottom: 3.5rem; }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.6rem;
+    }
+
+    .card {
+      background: var(--cream);
+      border-radius: 20px;
+      padding: 2rem 1.8rem;
+      border: 1px solid rgba(45,80,22,.07);
+      transition: transform .25s, box-shadow .25s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow);
+    }
+
+    .card-icon {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      color: var(--green);
+      margin-bottom: .5rem;
+    }
+    .card p {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.6;
+    }
+    .card-price {
+      margin-top: 1.2rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--amber);
+      font-family: 'Playfair Display', serif;
+    }
+    .card-price span {
+      font-size: .78rem;
+      font-weight: 400;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── COMO FUNCIONA ─────────────────────────────────────── */
+    #como-funciona { background: var(--cream); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .step {
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .step-num {
+      width: 52px; height: 52px;
+      background: var(--green);
+      color: var(--white);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0 auto 1.2rem;
+    }
+
+    .step h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      color: var(--green);
+      margin-bottom: .5rem;
+    }
+    .step p { color: var(--muted); font-size: .88rem; }
+
+    /* ── AGENDAMENTO ───────────────────────────────────────── */
+    #agendamento {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    #agendamento .section-label { color: var(--amber2); }
+    #agendamento h2 { color: var(--white); }
+    #agendamento .section-sub { color: rgba(255,255,255,.7); }
+
+    .form-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      margin-top: 3rem;
+      align-items: start;
+    }
+
+    .form-info h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 1.4rem;
+      color: var(--amber2);
+    }
+
+    .info-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .9rem;
+    }
+    .info-list li {
+      display: flex; align-items: center; gap: .8rem;
+      color: rgba(255,255,255,.85);
+      font-size: .93rem;
+    }
+    .info-list li::before {
+      content: '✓';
+      background: var(--amber);
+      color: var(--white);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    form {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 24px;
+      padding: 2.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      font-size: .83rem;
+      font-weight: 600;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.75);
+      text-transform: uppercase;
+    }
+
+    input, select, textarea {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,.35); }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--amber2);
+      background: rgba(255,255,255,.15);
+    }
+    select option { background: var(--green); color: var(--white); }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .btn-form {
+      background: var(--amber);
+      color: var(--white);
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      margin-top: .5rem;
+    }
+    .btn-form:hover { background: var(--amber2); transform: scale(1.02); }
+
+    /* TOAST */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      background: var(--green2);
+      color: var(--white);
+      padding: 1rem 1.6rem;
+      border-radius: 14px;
+      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      transform: translateY(120px);
+      opacity: 0;
+      transition: all .4s ease;
+    }
+    #toast.show { transform: none; opacity: 1; }
+
+    /* ── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,.6);
+      padding: 3rem 6vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--white);
+    }
+    .footer-logo span { color: var(--amber2); }
+    footer p { font-size: .85rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: rgba(255,255,255,.55);
+      text-decoration: none;
+      font-size: .85rem;
+      transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--amber2); }
+
+    /* ── RESPONSIVO ────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .hero-visual { display: none; }
+      .form-wrap { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="logo">Pet<span>Agenda</span></div>
+  <ul class="nav-links">
+    <li><a href="#servicos">Serviços</a></li>
+    <li><a href="#como-funciona">Como funciona</a></li>
+    <li><a href="login.html" class="btn-login">🔒 Área Restrita</a></li>
+    <li><a href="#agendamento" class="btn-nav">Agendar agora</a></li>
+  </ul>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="badge">🐾 Pet Shop em Timbiras – MA</div>
+    <h1>Seu pet merece o melhor <em>cuidado</em></h1>
+    <p class="hero-sub">
+      Agende banho, tosa, consultas veterinárias e muito mais de forma
+      rápida, simples e sem conflitos de horário.
+    </p>
+    <div class="hero-cta">
+      <a href="#agendamento" class="btn-primary">Agendar agora</a>
+      <a href="#servicos" class="btn-secondary">Ver serviços</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-card">
+      <div class="paw-float paw1">🐾</div>
+      <div class="paw-float paw2">🐾</div>
+      <p style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;">Próximo agendamento</p>
+      <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--warm);border-radius:14px;">
+        <div style="font-size:2rem;">🐕</div>
+        <div>
+          <div style="font-weight:600;color:var(--green);font-size:.95rem;">Rex – Banho & Tosa</div>
+          <div style="color:var(--muted);font-size:.8rem;">Hoje · 14h00 · Profissional: Ana</div>
+        </div>
+        <div style="margin-left:auto;background:var(--green2);color:#fff;font-size:.7rem;font-weight:600;padding:.3rem .7rem;border-radius:50px;">Confirmado</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">98%</div>
+          <div class="stat-lbl">Satisfação</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">0</div>
+          <div class="stat-lbl">Conflitos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">24h</div>
+          <div class="stat-lbl">Online</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="servicos">
+  <div class="section-head reveal">
+    <span class="section-label">O que oferecemos</span>
+    <h2>Serviços disponíveis</h2>
+    <p class="section-sub">Tudo que seu pet precisa, com profissionais qualificados e horários sem conflitos.</p>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card reveal">
+      <span class="card-icon">🛁</span>
+      <h3>Banho</h3>
+      <p>Banho completo com produtos especializados de acordo com o porte e raça do seu pet.</p>
+      <div class="card-price">R$ 40,00 <span>/ a partir de</span></div>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">✂️</span>
+      <h3>Tosa</h3>
+      <p>Tosa higiênica ou completa, realizada por tosadores experientes e com carinho.</p>
+      <div class="card-price">R$ 55,00 <span>/ a partir de</span></div>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🩺</span>
+      <h3>Consulta Veterinária</h3>
+      <p>Consultas clínicas gerais com veterinário para checkup, vacinas e orientações.</p>
+      <div class="card-price">R$ 90,00 <span>/ consulta</span></div>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">💆</span>
+      <h3>Banho + Tosa</h3>
+      <p>Pacote completo de higiene com desconto especial. O favorito dos tutores!</p>
+      <div class="card-price">R$ 85,00 <span>/ pacote</span></div>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">💅</span>
+      <h3>Hidratação</h3>
+      <p>Tratamento capilar profundo para pelagem brilhante, macia e saudável.</p>
+      <div class="card-price">R$ 35,00 <span>/ a partir de</span></div>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🦷</span>
+      <h3>Escovação Dental</h3>
+      <p>Higiene bucal especializada para prevenir tártaro e mau hálito no seu pet.</p>
+      <div class="card-price">R$ 25,00 <span>/ sessão</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="como-funciona">
+  <div class="section-head reveal" style="text-align:center;">
+    <span class="section-label">Simples assim</span>
+    <h2>Como funciona o agendamento</h2>
+    <p class="section-sub" style="margin:0 auto;">Em menos de 2 minutos seu horário está garantido, sem ligações e sem filas.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <h4>Preencha o formulário</h4>
+      <p>Informe o nome do tutor, do pet, serviço desejado e o horário preferido.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">2</div>
+      <h4>Sistema valida a disponibilidade</h4>
+      <p>O PetAgenda verifica automaticamente os horários livres, sem conflitos.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">3</div>
+      <h4>Receba a confirmação</h4>
+      <p>Sua solicitação é registrada e nossa equipe confirma rapidamente.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">4</div>
+      <h4>Compareça no horário</h4>
+      <p>Chegue tranquilo! Tudo estará preparado para receber você e seu pet.</p>
+    </div>
+  </div>
+</section>
+
+<section id="agendamento">
+  <div class="section-head reveal">
+    <span class="section-label">Solicite agora</span>
+    <h2>Agende um horário</h2>
+    <p class="section-sub">Preencha o formulário e nossa equipe entrará em contato para confirmar.</p>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-info reveal">
+      <h3>Por que escolher o PetAgenda?</h3>
+      <ul class="info-list">
+        <li>Agendamento online 24 horas por dia</li>
+        <li>Sem conflitos de horários garantido</li>
+        <li>Histórico completo de atendimentos</li>
+        <li>Profissionais qualificados e experientes</li>
+        <li>Cancelamento com facilidade</li>
+        <li>Atendimento personalizado para cada pet</li>
+      </ul>
+    </div>
+
+    <form id="formAgendamento" class="reveal">
+      <div class="form-row">
+        <label>
+          Nome do Tutor
+          <input type="text" id="nomeTutor" placeholder="Ex: João Silva" required/>
+        </label>
+        <label>
+          Telefone
+          <input type="tel" id="telefone" placeholder="(99) 99999-9999" required/>
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
+          Nome do Pet
+          <input type="text" id="nomePet" placeholder="Ex: Rex" required/>
+        </label>
+        <label>
+          Raça
+          <input type="text" id="raca" placeholder="Ex: Labrador"/>
+        </label>
+      </div>
+
+      <label>
+        Serviço desejado
+        <select id="servico" required>
+          <option value="" disabled selected>Selecione um serviço...</option>
+          <option value="1">🛁 Banho – R$ 40,00</option>
+          <option value="2">✂️ Tosa – R$ 55,00</option>
+          <option value="3">💆 Banho + Tosa – R$ 85,00</option>
+          <option value="4">🩺 Consulta Veterinária – R$ 90,00</option>
+          <option value="5">💅 Hidratação – R$ 35,00</option>
+          <option value="6">🦷 Escovação Dental – R$ 25,00</option>
+        </select>
+      </label>
+
+      <div class="form-row">
+        <label>
+          Data preferida
+          <input type="date" id="data" required/>
+        </label>
+        <label>
+          Horário preferido
+          <select id="horario" required>
+            <option value="">Selecione</option>
+            <option>08:00</option><option>09:00</option>
+            <option>10:00</option><option>11:00</option>
+            <option>13:00</option><option>14:00</option>
+            <option>15:00</option><option>16:00</option>
+            <option>17:00</option>
+          </select>
+        </label>
+      </div>
+
+      <label>
+        Observações (opcional)
+        <textarea id="obs" placeholder="Alguma informação importante sobre seu pet..."></textarea>
+      </label>
+
+      <button type="submit" class="btn-form">🐾 Solicitar Agendamento</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="footer-logo">Pet<span>Agenda</span></div>
+    <p style="margin-top:.4rem;">Timbiras – MA · (99) 9 9999-9999</p>
+  </div>
+  <p>© 2026 PetAgenda. Todos os direitos reservados.</p>
+  <div class="footer-links">
+    <a href="#servicos">Serviços</a>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#agendamento">Agendar</a>
+  </div>
+</footer>
+
+<div id="toast">✅ Solicitação enviada com sucesso!</div>
+
+<script>
+  // ── Nav scroll ──
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar')
+      .classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // ── Reveal on scroll ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 100);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Data mínima = hoje ──
+  document.getElementById('data').min =
+    new Date().toISOString().split('T')[0];
+
+  // ── Formulário ──
+  document.getElementById('formAgendamento').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const dados = {
+      tutor:    document.getElementById('nomeTutor').value,
+      telefone: document.getElementById('telefone').value,
+      pet:      document.getElementById('nomePet').value,
+      raca:     document.getElementById('raca').value,
+      servico:  document.getElementById('servico').value,
+      data:     document.getElementById('data').value,
+      horario:  document.getElementById('horario').value,
+      obs:      document.getElementById('obs').value,
+    };
+
+    console.log('📋 Dados do agendamento:', dados);
+    
+    // Enviando os dados para o servidor Java (Spring Boot) na porta 8080
+    fetch('http://localhost:8080/api/agendamento', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+    })
+    .then(response => {
+        if (response.ok) {
+            // Sucesso! Mostra o balão verde (toast)
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+            
+            // Limpa o formulário para o próximo cliente
+            document.getElementById('formAgendamento').reset();
+        } else {
+            alert("Ocorreu um erro ao salvar. Verifique o banco de dados.");
+        }
+    })
+    .catch(error => {
+        console.error('Erro de ligação com a API Java:', error);
+        alert("Erro de comunicação com o servidor. O Java está rodando?");
+    });
+  });
+</script>
+</body>
+</html>
