@@ -134,7 +134,7 @@
             const senhaDigitada = document.getElementById('senha').value;
             const msgErro = document.getElementById('mensagemErro');
 
-            fetch('http://localhost:8080/api/login', {
+            fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ login: loginDigitado, senha: senhaDigitada })
@@ -147,7 +147,7 @@
                 }
             })
             .then(dadosUsuario => {
-                // Se o login deu certo, guardamos uma "credencial" no navegador (Session Storage)
+                // O controle de acesso real é a sessão no servidor; aqui guardamos só o nome para exibir
                 sessionStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
                 
                 // E redirecionamos para o painel!
