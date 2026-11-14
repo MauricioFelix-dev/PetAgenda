@@ -400,6 +400,12 @@
       margin-top: 3rem;
       align-items: start;
     }
+    /* Correção (teste CT-13): por padrão um item de grid não encolhe abaixo do
+       tamanho do seu conteúdo. O texto longo das opções do <select> (ex.:
+       "Consulta Veterinária – R$ 90,00 (30 min)") alargava o formulário e criava
+       rolagem horizontal no celular. min-width: 0 permite que ele encolha. */
+    .form-wrap > * { min-width: 0; }
+    form select, form input, form textarea { max-width: 100%; }
 
     .form-info h3 {
       font-family: 'Playfair Display', serif;
@@ -501,6 +507,7 @@
       transition: all .4s ease;
     }
     #toast.show { transform: none; opacity: 1; }
+    #toast.erro { background: #b3261e; }
 
     /* ── FOOTER ────────────────────────────────────────────── */
     footer {
@@ -714,21 +721,31 @@
           <input type="text" id="nomePet" placeholder="Ex: Rex" required/>
         </label>
         <label>
+          Espécie
+          <select id="especie" required>
+            <option value="" disabled selected>Selecione...</option>
+            <option>Cão</option>
+            <option>Gato</option>
+            <option>Outro</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
           Raça
           <input type="text" id="raca" placeholder="Ex: Labrador"/>
+        </label>
+        <label>
+          Restrições de saúde / alergias
+          <input type="text" id="restricoes" placeholder="Ex: alergia a shampoo com perfume"/>
         </label>
       </div>
 
       <label>
         Serviço desejado
         <select id="servico" required>
-          <option value="" disabled selected>Selecione um serviço...</option>
-          <option value="1">🛁 Banho – R$ 40,00</option>
-          <option value="2">✂️ Tosa – R$ 55,00</option>
-          <option value="3">💆 Banho + Tosa – R$ 85,00</option>
-          <option value="4">🩺 Consulta Veterinária – R$ 90,00</option>
-          <option value="5">💅 Hidratação – R$ 35,00</option>
-          <option value="6">🦷 Escovação Dental – R$ 25,00</option>
+          <option value="" disabled selected>Carregando serviços...</option>
         </select>
       </label>
 
@@ -740,12 +757,7 @@
         <label>
           Horário preferido
           <select id="horario" required>
-            <option value="">Selecione</option>
-            <option>08:00</option><option>09:00</option>
-            <option>10:00</option><option>11:00</option>
-            <option>13:00</option><option>14:00</option>
-            <option>15:00</option><option>16:00</option>
-            <option>17:00</option>
+            <option value="">Escolha serviço e data</option>
           </select>
         </label>
       </div>
@@ -794,52 +806,99 @@
 
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // ── Data mínima = hoje ──
-  document.getElementById('data').min =
-    new Date().toISOString().split('T')[0];
+  // ── Data mínima = hoje (pela data local, não UTC) ──
+  const hoje = new Date();
+  const hojeISO = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
+  document.getElementById('data').min = hojeISO;
 
-  // ── Formulário ──
+  // ── Toast de sucesso ou erro ──
+  function mostrarToast(mensagem, ehErro) {
+    const toast = document.getElementById('toast');
+    toast.textContent = (ehErro ? '⚠️ ' : '✅ ') + mensagem;
+    toast.classList.toggle('erro', ehErro);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // ── Carrega os serviços do banco (evita IDs fixos e desatualizados no HTML) ──
+  const selectServico = document.getElementById('servico');
+  fetch('/api/servicos')
+    .then(r => r.json())
+    .then(servicos => {
+      selectServico.innerHTML = '<option value="" disabled selected>Selecione um serviço...</option>';
+      servicos.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.descricao + ' – R$ ' + Number(s.preco).toFixed(2).replace('.', ',') + ' (' + s.duracaoMinutos + ' min)';
+        selectServico.appendChild(opt);
+      });
+    })
+    .catch(() => mostrarToast('Não foi possível carregar os serviços. O servidor está rodando?', true));
+
+  // ── Busca horários livres sempre que serviço ou data mudarem ──
+  const selectHorario = document.getElementById('horario');
+  function carregarHorarios() {
+    const servico = selectServico.value;
+    const data = document.getElementById('data').value;
+    if (!servico || !data) return;
+
+    selectHorario.innerHTML = '<option value="">Carregando...</option>';
+    fetch('/api/horarios-disponiveis?data=' + data + '&servico=' + servico)
+      .then(r => r.json())
+      .then(horarios => {
+        selectHorario.innerHTML = '';
+        if (!Array.isArray(horarios) || horarios.length === 0) {
+          selectHorario.innerHTML = '<option value="">Nenhum horário livre nesta data</option>';
+          return;
+        }
+        selectHorario.innerHTML = '<option value="">Selecione</option>';
+        horarios.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h;
+          opt.textContent = h;
+          selectHorario.appendChild(opt);
+        });
+      })
+      .catch(() => { selectHorario.innerHTML = '<option value="">Erro ao carregar</option>'; });
+  }
+  selectServico.addEventListener('change', carregarHorarios);
+  document.getElementById('data').addEventListener('change', carregarHorarios);
+
+  // ── Envio do formulário ──
   document.getElementById('formAgendamento').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const dados = {
-      tutor:    document.getElementById('nomeTutor').value,
-      telefone: document.getElementById('telefone').value,
-      pet:      document.getElementById('nomePet').value,
-      raca:     document.getElementById('raca').value,
-      servico:  document.getElementById('servico').value,
-      data:     document.getElementById('data').value,
-      horario:  document.getElementById('horario').value,
-      obs:      document.getElementById('obs').value,
+      tutor:      document.getElementById('nomeTutor').value,
+      telefone:   document.getElementById('telefone').value,
+      pet:        document.getElementById('nomePet').value,
+      especie:    document.getElementById('especie').value,
+      raca:       document.getElementById('raca').value,
+      restricoes: document.getElementById('restricoes').value,
+      servico:    selectServico.value,
+      data:       document.getElementById('data').value,
+      horario:    selectHorario.value,
+      obs:        document.getElementById('obs').value,
     };
 
-    console.log('📋 Dados do agendamento:', dados);
-    
-    // Enviando os dados para o servidor Java (Spring Boot) na porta 8080
-    fetch('http://localhost:8080/api/agendamento', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dados)
+    fetch('/api/agendamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
     })
-    .then(response => {
-        if (response.ok) {
-            // Sucesso! Mostra o balão verde (toast)
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-            
-            // Limpa o formulário para o próximo cliente
-            document.getElementById('formAgendamento').reset();
-        } else {
-            alert("Ocorreu um erro ao salvar. Verifique o banco de dados.");
-        }
+    .then(response => response.json().then(corpo => ({ ok: response.ok, status: response.status, corpo })))
+    .then(({ ok, status, corpo }) => {
+      if (ok) {
+        mostrarToast(corpo.mensagem || 'Solicitação enviada com sucesso!', false);
+        document.getElementById('formAgendamento').reset();
+        selectHorario.innerHTML = '<option value="">Escolha serviço e data</option>';
+      } else {
+        // 409 = horário ocupado (motor antichoque); 400 = dado inválido
+        mostrarToast(corpo.erro || ('Erro ' + status), true);
+        if (status === 409) carregarHorarios();
+      }
     })
-    .catch(error => {
-        console.error('Erro de ligação com a API Java:', error);
-        alert("Erro de comunicação com o servidor. O Java está rodando?");
-    });
+    .catch(() => mostrarToast('Erro de comunicação com o servidor.', true));
   });
 </script>
 </body>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - PetAgenda</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ── RESET & VARIÁVEIS ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --cream:   #FAF6EF;
+            --green:   #2D5016;
+            --amber:   #C8861A;
+            --white:   #FFFFFF;
+            --text:    #2A2318;
+            --muted:   #7A6A58;
+            --shadow:  0 4px 12px rgba(0,0,0,0.05);
+            --radius:  12px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--cream);
+            color: var(--text);
+            padding-bottom: 40px;
+        }
+
+        /* ── CABEÇALHO ATUALIZADO ── */
+        header {
+            background-color: var(--green);
+            color: var(--white);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-direita {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nome-usuario {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #E8A030;
+        }
+
+        .btn-voltar {
+            color: var(--white);
+            background: transparent;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-voltar:hover { background-color: rgba(255,255,255,0.1); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .secao-titulo { margin-bottom: 24px; font-size: 1.8rem; color: var(--green); }
+        .grid-agendamentos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+        .card {
+            background: var(--white); border-radius: var(--radius); padding: 24px;
+            box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px;
+            border-top: 4px solid var(--amber);
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .tutor-nome { font-size: 1.2rem; font-weight: 600; color: var(--green); }
+
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .status-Pendente { background-color: #FFF3CD; color: #856404; }
+        .status-Concluído { background-color: #D4EDDA; color: #155724; border-top-color: #28a745; }
+        .status-Cancelado { background-color: #F8D7DA; color: #721C24; opacity: 0.7; }
+
+        .info-linha { font-size: 0.95rem; }
+        .info-linha strong { color: var(--muted); }
+        .obs-box { background-color: #F8F9FA; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: var(--muted); font-style: italic; }
+        .vazio { text-align: center; color: var(--muted); padding: 40px; font-size: 1.2rem; grid-column: 1 / -1; }
+
+        .card-acoes { display: flex; gap: 8px; margin-top: 8px; border-top: 1px solid #eee; padding-top: 16px; }
+        .btn-acao {
+            flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: 0.2s; color: var(--white);
+        }
+        .btn-concluir { background-color: #28a745; }
+        .btn-concluir:hover { background-color: #218838; }
+        .btn-cancelar { background-color: #dc3545; }
+        .btn-cancelar:hover { background-color: #c82333; }
+        .btn-iniciar { background-color: #1f6feb; }
+        .btn-iniciar:hover { background-color: #1a5fd0; }
+        .status-Em { background-color: #DCEBFF; color: #0B4AA2; }
+        .alerta-saude { background-color: #FDECEA; color: #8A1C1C; border-left: 4px solid #dc3545; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; }
+        .barra-filtro { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+        .barra-filtro input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem; }
+        .barra-filtro button { padding: 8px 14px; border: 1px solid var(--green); background: var(--white); color: var(--green); border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .indicador { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
+        .indicador .valor { font-size: 1.6rem; font-weight: 600; color: var(--green); }
+        .indicador .rotulo { font-size: 0.85rem; color: var(--muted); }
+        @media (max-width: 600px) { header { padding: 16px; flex-direction: column; gap: 10px; } header h1 { font-size: 1.2rem; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🐾 PetAgenda | Painel Administrativo</h1>
+        <div class="header-direita">
+            <span id="displayNome" class="nome-usuario"></span>
+            <button onclick="fazerLogout()" class="btn-voltar">Sair da Conta</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="secao-titulo">Indicadores</h2>
+        <div id="indicadores" class="indicadores"></div>
+
+        <h2 class="secao-titulo">Agenda do dia</h2>
+        <div class="barra-filtro">
+            <label for="filtroData">Data:</label>
+            <input type="date" id="filtroData">
+            <button type="button" id="btnHoje">Hoje</button>
+        </div>
+        <div id="lista-agendamentos" class="grid-agendamentos">
+            <p class="vazio">⏳ Carregando dados do servidor...</p>
+        </div>
+    </div>
+
+    <script>
+        // O acesso é controlado pela SESSÃO NO SERVIDOR: se a API responder 401,
+        // o usuário não está logado e volta para a tela de login.
+        const usuario = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
+        if (!usuario) {
+            window.location.href = 'login.html';
+        }
+
+        const filtroData = document.getElementById('filtroData');
+
+        function dataDeHoje() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function tratarNaoAutorizado(resposta) {
+            if (resposta.status === 401) {
+                sessionStorage.removeItem('usuarioLogado');
+                window.location.href = 'login.html';
+                throw new Error('Não autorizado');
+            }
+            return resposta;
+        }
+
+        // Cria um elemento com texto. Usar textContent (e não innerHTML) impede que
+        // um texto digitado pelo cliente seja executado como código (XSS).
+        function el(tag, classe, texto) {
+            const e = document.createElement(tag);
+            if (classe) e.className = classe;
+            if (texto !== undefined && texto !== null) e.textContent = texto;
+            return e;
+        }
+
+        function linha(rotulo, valor) {
+            const div = el('div', 'info-linha');
+            div.appendChild(el('strong', null, rotulo + ': '));
+            div.appendChild(document.createTextNode(valor || '-'));
+            return div;
+        }
+
+        function dinheiro(v) {
+            return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+        }
+
+        function carregarIndicadores() {
+            fetch('/api/indicadores?data=' + filtroData.value)
+                .then(tratarNaoAutorizado)
+                .then(r => r.json())
+                .then(ind => {
+                    const box = document.getElementById('indicadores');
+                    box.replaceChildren();
+                    [
+                        ['Atendimentos no dia', ind.atendimentosDia],
+                        ['Concluídos no dia', ind.concluidosDia],
+                        ['Ocupação da agenda', ind.ocupacaoPercentual + '%'],
+                        ['Faturamento do dia', dinheiro(ind.faturamentoDia)],
+                        ['Atendimentos no mês', ind.atendimentosMes],
+                        ['Faturamento do mês', dinheiro(ind.faturamentoMes)],
+                        ['Serviço mais procurado (mês)', ind.servicoMaisProcurado]
+                    ].forEach(([rotulo, valor]) => {
+                        const card = el('div', 'indicador');
+                        card.appendChild(el('div', 'valor', valor));
+                        card.appendChild(el('div', 'rotulo', rotulo));
+                        box.appendChild(card);
+                    });
+                })
+                .catch(erro => console.error('Erro nos indicadores:', erro));
+        }
+
+        function buscarAgendamentos() {
+            fetch('/api/agendamentos?data=' + filtroData.value)
+                .then(tratarNaoAutorizado)
+                .then(r => r.json())
+                .then(dados => {
+                    const container = document.getElementById('lista-agendamentos');
+                    container.replaceChildren();
+                    if (dados.length === 0) {
+                        container.appendChild(el('p', 'vazio', 'Nenhum agendamento nesta data.'));
+                        return;
+                    }
+                    dados.forEach(item => container.appendChild(montarCard(item)));
+                })
+                .catch(erro => console.error('Erro:', erro));
+        }
+
+        function montarCard(item) {
+            // dataHora chega como "2026-11-20T14:30"
+            const [data, hora] = item.dataHora.split('T');
+            const dataBR = data.split('-').reverse().join('/');
+
+            const card = el('div', 'card');
+            if (item.status === 'Concluído') card.style.borderTopColor = '#28a745';
+            if (item.status === 'Cancelado') card.style.borderTopColor = '#dc3545';
+
+            const cab = el('div', 'card-header');
+            cab.appendChild(el('div', 'tutor-nome', hora + ' · ' + item.tutor));
+            cab.appendChild(el('div', 'badge status-' + item.status.split(' ')[0], item.status));
+            card.appendChild(cab);
+
+            if (item.restricoes) {
+                card.appendChild(el('div', 'alerta-saude', '⚠️ Restrição de saúde: ' + item.restricoes));
+            }
+            card.appendChild(linha('Pet', item.pet + (item.especie ? ' (' + item.especie + (item.raca ? ', ' + item.raca : '') + ')' : '')));
+            card.appendChild(linha('Serviço', item.servico + ' – ' + item.duracaoMinutos + ' min'));
+            card.appendChild(linha('Telefone', item.telefone));
+            card.appendChild(linha('Data', dataBR + ' às ' + hora));
+            if (item.observacoes) {
+                card.appendChild(el('div', 'obs-box', '📝 ' + item.observacoes));
+            }
+
+            const acoes = el('div', 'card-acoes');
+            if (item.status === 'Pendente') {
+                acoes.appendChild(botao('▶ Iniciar', 'btn-iniciar', item.id, 'Em andamento'));
+            }
+            if (item.status === 'Pendente' || item.status === 'Em andamento') {
+                acoes.appendChild(botao('✓ Concluir', 'btn-concluir', item.id, 'Concluído'));
+                acoes.appendChild(botao('✕ Cancelar', 'btn-cancelar', item.id, 'Cancelado'));
+                card.appendChild(acoes);
+            }
+            return card;
+        }
+
+        function botao(texto, classe, id, novoStatus) {
+            const b = el('button', 'btn-acao ' + classe, texto);
+            b.type = 'button';
+            b.addEventListener('click', () => mudarStatus(id, novoStatus));
+            return b;
+        }
+
+        function mudarStatus(idAgendamento, novoStatus) {
+            if (!confirm('Marcar este agendamento como "' + novoStatus + '"?')) return;
+            fetch('/api/agendamento/' + idAgendamento + '/status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            })
+            .then(tratarNaoAutorizado)
+            .then(r => {
+                if (!r.ok) {
+                    alert('Erro ao atualizar o status.');
+                    return;
+                }
+                atualizarTela();
+            })
+            .catch(erro => console.error('Erro ao atualizar:', erro));
+        }
+
+        function fazerLogout() {
+            if (!confirm('Deseja realmente sair do sistema?')) return;
+            fetch('/api/logout', { method: 'POST' }).finally(() => {
+                sessionStorage.removeItem('usuarioLogado');
+                window.location.href = 'login.html';
+            });
+        }
+
+        function atualizarTela() {
+            carregarIndicadores();
+            buscarAgendamentos();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (usuario) {
+                document.getElementById('displayNome').textContent = 'Olá, ' + usuario.nome;
+            }
+            filtroData.value = dataDeHoje();
+            filtroData.addEventListener('change', atualizarTela);
+            document.getElementById('btnHoje').addEventListener('click', () => {
+                filtroData.value = dataDeHoje();
+                atualizarTela();
+            });
+            atualizarTela();
+        });
+    </script>
+</body>
+</html>
