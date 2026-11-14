@@ -406,8 +406,19 @@ public class PetAgendaController {
         return texto.isEmpty() ? null : texto;
     }
 
+    /**
+     * Deixa só os dígitos do telefone, para que "(99) 98888-7777" e "99988887777"
+     * virem o mesmo número (e o tutor não seja duplicado).
+     * Correção (teste CT-05): se a pessoa digitar com o código do Brasil
+     * (ex.: "+55 99 98888-7777", comum ao copiar do WhatsApp), o número ficava com
+     * 12 ou 13 dígitos e era recusado. Agora o "55" do início é removido nesse caso.
+     */
     private static String somenteDigitos(String texto) {
-        return texto == null ? "" : texto.replaceAll("\\D", "");
+        String digitos = texto == null ? "" : texto.replaceAll("\\D", "");
+        if ((digitos.length() == 12 || digitos.length() == 13) && digitos.startsWith("55")) {
+            digitos = digitos.substring(2);
+        }
+        return digitos;
     }
 
     private static <T> ResponseEntity<T> erro(HttpStatus status, String mensagem) {
