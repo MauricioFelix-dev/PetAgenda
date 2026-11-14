@@ -230,7 +230,7 @@ public class TestesCT {
         md.append("| Caso | Resultado | Detalhe |\n|---|---|---|\n");
         for (String[] l : linhas) {
             md.append("| ").append(l[0]).append(" | ").append(l[1]).append(" | ")
-              .append(l[2].replace("|", "/").replace("<", "&lt;").replace(">", "&gt;")).append(" |\n");
+              .append(l[2].replace("|", "/")).append(" |\n");  // sem trocar ">" por "&gt;": a seta "->" ficava ilegivel ao copiar para o Word
         }
         md.append("\nObs.: os casos CT-06, CT-12 e CT-13 tambem precisam de print do navegador; ")
           .append("CT-09 e CT-05 podem ser confirmados no phpMyAdmin.\n");
