@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -69,10 +70,20 @@ public class PetAgendaController {
      */
     private final int capacidadeSimultanea;
 
+    /**
+     * Fuso horário do pet shop, usado para saber "que horas são agora".
+     * Correção (teste na nuvem, 14/11): antes o sistema usava o relógio do
+     * computador onde roda. Num servidor configurado em UTC, o "agora" ficava
+     * 3 horas adiantado e horários ainda válidos eram recusados como "já passou".
+     */
+    private final ZoneId fusoHorario;
+
     public PetAgendaController(JdbcTemplate jdbcTemplate,
-                               @Value("${petagenda.capacidade-simultanea:1}") int capacidadeSimultanea) {
+                               @Value("${petagenda.capacidade-simultanea:1}") int capacidadeSimultanea,
+                               @Value("${petagenda.fuso-horario:America/Sao_Paulo}") String fusoHorario) {
         this.jdbcTemplate = jdbcTemplate;
         this.capacidadeSimultanea = capacidadeSimultanea;
+        this.fusoHorario = ZoneId.of(fusoHorario);
     }
 
     // =====================================================================
@@ -100,7 +111,7 @@ public class PetAgendaController {
 
         List<Map<String, Object>> ocupados = buscarAgendamentosAtivosDoDia(dia);
         List<String> livres = new ArrayList<>();
-        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime agora = LocalDateTime.now(fusoHorario);
 
         for (LocalTime t = ABERTURA; !t.plusMinutes(duracao).isAfter(FECHAMENTO); t = t.plusMinutes(INTERVALO_MINUTOS)) {
             LocalDateTime inicio = LocalDateTime.of(dia, t);
@@ -150,7 +161,7 @@ public class PetAgendaController {
         if (duracao == null) {
             return erro(HttpStatus.BAD_REQUEST, "Serviço inexistente.");
         }
-        if (inicio.isBefore(LocalDateTime.now())) {
+        if (inicio.isBefore(LocalDateTime.now(fusoHorario))) {
             return erro(HttpStatus.BAD_REQUEST, "Não é possível agendar em data ou horário que já passou.");
         }
         LocalTime horaInicio = inicio.toLocalTime();
@@ -173,10 +184,16 @@ public class PetAgendaController {
             int idPet = buscarOuCriarPet(nomePet, especie, raca, restricoes, idTutor);
 
             // 5. Grava o agendamento
+            // Correção (teste CT-02/CT-03, 14/11): antes era Timestamp.valueOf(inicio).
+            // O Timestamp carrega o fuso do computador, e o driver do MySQL convertia
+            // para o fuso da URL (serverTimezone). Se os dois fusos fossem diferentes,
+            // 08:00 era gravado como 05:00 e o antichoque deixava passar reservas
+            // duplicadas. Enviando o LocalDateTime direto, o horário é gravado
+            // exatamente como o cliente escolheu, sem conversão de fuso.
             jdbcTemplate.update(
                     "INSERT INTO agendamento (dataHora, observacoes, status, id_tutor, id_pet, id_servico) "
                             + "VALUES (?, ?, 'Pendente', ?, ?, ?)",
-                    Timestamp.valueOf(inicio), obs, idTutor, idPet, idServico);
+                    inicio, obs, idTutor, idPet, idServico);
 
             Map<String, Object> resposta = new LinkedHashMap<>();
             resposta.put("sucesso", true);
@@ -274,7 +291,7 @@ public class PetAgendaController {
         }
         LocalDate dia;
         try {
-            dia = (data == null || data.isBlank()) ? LocalDate.now() : LocalDate.parse(data);
+            dia = (data == null || data.isBlank()) ? LocalDate.now(fusoHorario) : LocalDate.parse(data);
         } catch (DateTimeParseException e) {
             return erro(HttpStatus.BAD_REQUEST, "Data inválida.");
         }
