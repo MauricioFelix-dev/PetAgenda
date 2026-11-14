@@ -35,6 +35,17 @@ Testes unitários da regra antichoque (não precisam de banco):
 mvnw.cmd test -Dtest=RegraConflitoTest
 ```
 
+### Roteiro automático dos casos CT-01 a CT-13 (precisa do sistema ligado)
+Com o sistema rodando em outro terminal (`mvnw.cmd spring-boot:run`), dê dois cliques em
+`testes\rodar-testes.bat` ou rode na pasta do projeto:
+```
+java testes/TestesCT.java
+```
+O roteiro escolhe sozinho um dia futuro com a agenda vazia, cria agendamentos fictícios
+e confere cada resposta (409, 401, 400 etc.). O resultado aparece na tela e é salvo em
+`testes/resultados/resultado-AAAA-MM-DD_HH-mm.md`. CT-09 e CT-13 continuam manuais, e
+CT-06 e CT-12 também precisam de print do painel no navegador.
+
 ## Regras de negócio implementadas
 | Regra | Onde |
 |---|---|
