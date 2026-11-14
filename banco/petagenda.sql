@@ -10,6 +10,11 @@
 -- (login: admin / senha: admin123).
 -- =====================================================================
 
+-- Correção: garante que o script seja lido como UTF-8. Sem esta linha, ao importar
+-- pelo terminal (cliente "mysql"), acentos como "Escovação" e "Hidratação" eram
+-- gravados corrompidos ("EscovaÃ§Ã£o"). No phpMyAdmin não faz diferença.
+SET NAMES utf8mb4;
+
 CREATE DATABASE IF NOT EXISTS petagenda CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE petagenda;
 
