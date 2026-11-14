@@ -29,6 +29,13 @@ Landing page pública com autoatendimento + painel administrativo com login.
 Se a senha do MySQL não for vazia, ajuste `spring.datasource.password` em
 `src/main/resources/application.properties`.
 
+### Problemas comuns no Windows (encontrados no teste de 14/11/2026)
+| Mensagem | Causa | Solução |
+|---|---|---|
+| `'mvnw.cmd' não é reconhecido` | o terminal (PowerShell) não procura programas na pasta atual | use `.\mvnw.cmd spring-boot:run` |
+| `JAVA_HOME environment variable is not defined correctly` | o Java está instalado, mas a variável JAVA_HOME não existe | crie a variável de usuário JAVA_HOME com a pasta do JDK (ex.: `C:\Program Files\Java\jdk-...`), coloque `%JAVA_HOME%\bin` no PATH e reabra o terminal/VS Code |
+| `Port 8080 was already in use` | o **Tomcat do XAMPP** está ligado e usa a mesma porta | no painel do XAMPP, clique em **Stop** no Tomcat (só o MySQL precisa ficar ligado) |
+
 ## Testes automatizados
 Testes unitários da regra antichoque (não precisam de banco):
 ```
