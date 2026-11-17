@@ -14,7 +14,7 @@ Severidade: Crítica, Alta, Média, Baixa (ver escala de Nielsen na seção 3).
 2. **Avaliação heurística** com as 10 heurísticas de Nielsen (1994; NIELSEN; MOLICH, 1990), aplicada pelos avaliadores (a dupla, com apoio do Claude Code como ferramenta de revisão).
 3. **Medição de contraste** pela fórmula de luminância relativa da WCAG 2.1 (critérios 1.4.3 e 1.4.11), calculada para cada par de cores do `:root`.
 4. **Teste automático de acessibilidade** com a biblioteca axe-core 4 (regras WCAG 2.0/2.1 A e AA) no navegador Chromium, com a API simulada (dados fictícios), porque o MySQL não estava disponível no ambiente da análise.
-5. **Teste de responsividade** real (não "mental"): prints de página inteira nas larguras 360 px (celular), 768 px (tablet) e 1280 px (computador). Os prints de 360 e 1280 px estão em `auditoria/prints/`.
+5. **Teste de responsividade** real (não "mental"): prints de página inteira nas larguras 360 px (celular), 768 px (tablet) e 1280 px (computador). Os prints de 360 e 1280 px estão em `auditoria/prints/` (arquivos `antes-*`).
 6. **Teste de teclado:** navegação com Tab nas três telas, verificando se o foco fica visível.
 
 > Limitação do método: não houve teste com usuários reais (tutores ou funcionários). A avaliação heurística é um método de **inspeção** feito por avaliadores, e Nielsen recomenda de 3 a 5 avaliadores para encontrar a maior parte dos problemas (NIELSEN, 1992). Isso deve ser declarado no TCC.
@@ -116,7 +116,7 @@ Regra: texto normal precisa de **4,5:1**; texto grande (≥ 24 px, ou ≥ 18,66 
 | 768 px | Mesmo comportamento do celular (menu some até 900 px). Formulário em 1 coluna. | OK | Indicadores em 3-4 colunas; agenda em 2 colunas. OK. |
 | 1280 px | OK. | OK | OK. |
 
-Medido com `document.documentElement.scrollWidth = clientWidth` em todas as larguras (nenhuma rolagem horizontal). Prints em `auditoria/prints/`.
+Medido com `document.documentElement.scrollWidth = clientWidth` em todas as larguras (nenhuma rolagem horizontal). Prints em `auditoria/prints/` (arquivos `antes-*`).
 
 ## 6. LGPD na interface
 

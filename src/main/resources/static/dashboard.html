@@ -48,7 +48,7 @@
         .nome-usuario {
             font-weight: 600;
             font-size: 0.95rem;
-            color: #E8A030;
+            color: #F2B860; /* #E8A030 sobre o verde dava 4,18:1; este dá 5,20:1 */
         }
 
         .btn-voltar {
@@ -90,10 +90,11 @@
         .card-acoes { display: flex; gap: 8px; margin-top: 8px; border-top: 1px solid #eee; padding-top: 16px; }
         .btn-acao {
             flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
-            cursor: pointer; transition: 0.2s; color: var(--white);
+            cursor: pointer; transition: 0.2s; color: var(--white); font-family: inherit;
         }
-        .btn-concluir { background-color: #28a745; }
-        .btn-concluir:hover { background-color: #218838; }
+        button:focus-visible, input:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+        .btn-concluir { background-color: #1E7E34; } /* #28a745 dava 3,13:1 com texto branco; este dá 5,14:1 */
+        .btn-concluir:hover { background-color: #19692C; }
         .btn-cancelar { background-color: #dc3545; }
         .btn-cancelar:hover { background-color: #c82333; }
         .btn-iniciar { background-color: #1f6feb; }
@@ -101,8 +102,8 @@
         .status-Em { background-color: #DCEBFF; color: #0B4AA2; }
         .alerta-saude { background-color: #FDECEA; color: #8A1C1C; border-left: 4px solid #dc3545; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; }
         .barra-filtro { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
-        .barra-filtro input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem; }
-        .barra-filtro button { padding: 8px 14px; border: 1px solid var(--green); background: var(--white); color: var(--green); border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .barra-filtro input { padding: 8px 12px; border: 1px solid #8C8C8C; border-radius: 8px; font-family: inherit; font-size: 1rem; }
+        .barra-filtro button { padding: 8px 14px; border: 1px solid var(--green); background: var(--white); color: var(--green); border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; }
         .indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 32px; }
         .indicador { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
         .indicador .valor { font-size: 1.6rem; font-weight: 600; color: var(--green); }
@@ -113,14 +114,14 @@
 <body>
 
     <header>
-        <h1>🐾 PetAgenda | Painel Administrativo</h1>
+        <h1><span aria-hidden="true">🐾</span> PetAgenda | Painel Administrativo</h1>
         <div class="header-direita">
             <span id="displayNome" class="nome-usuario"></span>
             <button onclick="fazerLogout()" class="btn-voltar">Sair da Conta</button>
         </div>
     </header>
 
-    <div class="container">
+    <main class="container">
         <h2 class="secao-titulo">Indicadores</h2>
         <div id="indicadores" class="indicadores"></div>
 
@@ -130,10 +131,10 @@
             <input type="date" id="filtroData">
             <button type="button" id="btnHoje">Hoje</button>
         </div>
-        <div id="lista-agendamentos" class="grid-agendamentos">
-            <p class="vazio">⏳ Carregando dados do servidor...</p>
+        <div id="lista-agendamentos" class="grid-agendamentos" aria-live="polite">
+            <p class="vazio">Carregando dados do servidor...</p>
         </div>
-    </div>
+    </main>
 
     <script>
         // O acesso é controlado pela SESSÃO NO SERVIDOR: se a API responder 401,
