@@ -31,7 +31,18 @@
 
 Prints: `auditoria/prints/antes-*.png` e `auditoria/prints/depois-*.png` (360 e 1280 px).
 
-**O que ainda não foi testado:** o roteiro `testes/TestesCT.java` (CT-01 a CT-13) e a tela com o banco de verdade, porque o ambiente da análise não tinha MySQL. Antes de entregar, rodem o sistema no PC (XAMPP), refaçam o CT-01 e o CT-13 e tirem os prints com dados reais. O back-end não mudou, então os testes da API não devem ser afetados.
+## Testes com o sistema real (17/11/2026, PC do Mauricio com XAMPP)
+
+| Caso | Ambiente | Resultado | Evidência |
+|---|---|---|---|
+| CT-01 Agendamento válido | Navegador no PC, `localhost:8080`, banco MySQL real | **Passou.** Consulta Veterinária em 19/11/2026 às 14:00; apareceu a mensagem "Solicitação registrada para 19/11/2026 às 14:00. Status: Pendente. O pet shop confirma pelo telefone informado." A caixa LGPD estava marcada. | `prints/testes-reais/CT-01-formulario-preenchido.png`, `CT-01-mensagem-sucesso.png` |
+| CT-13 Responsividade | Celular Android (navegador Brave), `192.168.1.13:8080` | **Passou.** Landing sem rolagem horizontal, formulário em uma coluna, aviso de privacidade e rodapé visíveis. Os cards mostram os preços e durações vindos do banco (ex.: Banho R$ 40,00 · 30 min), o que confirma a melhoria 5 com dados reais. | `prints/testes-reais/CT-13-celular-1.jpeg` a `-4.jpeg` |
+
+Observações dos prints do celular (não impedem o teste):
+- O menu do topo não aparece no celular, como já previsto (melhoria 3, pendente).
+- No Android, o campo **Data** aparece estreito e sem dica até ser tocado. Uma correção simples seria `width: 100%` no campo de data. [Provável: visto só no print]
+
+**O que ainda não foi testado:** o roteiro completo `testes/TestesCT.java` (CT-01 a CT-13 automático) depois das mudanças. O back-end não mudou, então os resultados da API não devem mudar, mas vale rodar de novo para ter o registro com a data nova.
 
 ## Limitações que continuam (declarar no TCC)
 
