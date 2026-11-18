@@ -169,4 +169,12 @@ class AgendamentoServiceTest {
         service.criar(d);
         assertEquals(4, jdbc.queryForObject("SELECT idade FROM pet", Integer.class));
     }
+
+    @Test
+    void sv09_textoLongoDaMensagemClaraENaoGravaNada() {
+        Map<String, String> d = pedido("99911110007", "P".repeat(70), 1, "15:00", "");
+        RegraNegocioException e = assertThrows(RegraNegocioException.class, () -> service.criar(d));
+        assertEquals(HttpStatus.BAD_REQUEST, e.getStatus());
+        assertEquals(0, contar("tutor"));
+    }
 }

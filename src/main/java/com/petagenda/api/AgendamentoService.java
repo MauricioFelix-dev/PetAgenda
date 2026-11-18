@@ -135,6 +135,12 @@ public class AgendamentoService {
         if (nomeTutor.isEmpty() || nomePet.isEmpty()) {
             throw new RegraNegocioException(HttpStatus.BAD_REQUEST, "Informe o nome do tutor e do pet.");
         }
+        // Mesmos limites das colunas do banco: sem isto, um texto longo virava
+        // "Falha ao gravar no banco" (achado da exploração de 18/11/2026).
+        if (nomeTutor.length() > 100 || nomePet.length() > 50 || raca.length() > 50 || especie.length() > 30) {
+            throw new RegraNegocioException(HttpStatus.BAD_REQUEST,
+                    "Texto longo demais: nome do tutor até 100 caracteres; nome do pet e raça até 50.");
+        }
         if (telefone.length() < 10 || telefone.length() > 11) {
             throw new RegraNegocioException(HttpStatus.BAD_REQUEST, "Telefone inválido. Use DDD + número.");
         }

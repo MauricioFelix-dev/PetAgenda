@@ -856,7 +856,7 @@
       <div class="form-row">
         <label>
           Nome do Tutor
-          <input type="text" id="nomeTutor" autocomplete="name" placeholder="Ex: João Silva" required/>
+          <input type="text" id="nomeTutor" maxlength="100" autocomplete="name" placeholder="Ex: João Silva" required/>
         </label>
         <label>
           Telefone (com DDD)
@@ -867,7 +867,7 @@
       <div class="form-row">
         <label>
           Nome do Pet
-          <input type="text" id="nomePet" placeholder="Ex: Rex" required/>
+          <input type="text" id="nomePet" maxlength="50" placeholder="Ex: Rex" required/>
         </label>
         <label>
           Espécie
@@ -883,7 +883,7 @@
       <div class="form-row">
         <label>
           Raça
-          <input type="text" id="raca" placeholder="Ex: Labrador"/>
+          <input type="text" id="raca" maxlength="50" placeholder="Ex: Labrador"/>
         </label>
         <label>
           Idade do pet (anos, opcional)
@@ -893,7 +893,7 @@
 
       <label>
         Restrições de saúde / alergias
-        <input type="text" id="restricoes" placeholder="Ex: alergia a shampoo com perfume"/>
+        <input type="text" id="restricoes" maxlength="500" placeholder="Ex: alergia a shampoo com perfume"/>
       </label>
 
       <label>
@@ -919,7 +919,7 @@
 
       <label>
         Observações (opcional)
-        <textarea id="obs" placeholder="Alguma informação importante sobre seu pet..."></textarea>
+        <textarea id="obs" maxlength="1000" placeholder="Alguma informação importante sobre seu pet..."></textarea>
       </label>
 
       <!-- LGPD (Lei 13.709/2018): informar, no ponto de coleta, para que os dados
