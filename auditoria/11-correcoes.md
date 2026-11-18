@@ -42,7 +42,7 @@ Observações dos prints do celular (não impedem o teste):
 - O menu do topo não aparece no celular, como já previsto (melhoria 3, pendente).
 - No Android, o campo **Data** aparece estreito e sem dica até ser tocado. Uma correção simples seria `width: 100%` no campo de data. [Provável: visto só no print]
 
-**O que ainda não foi testado:** o roteiro completo `testes/TestesCT.java` (CT-01 a CT-13 automático) depois das mudanças. O back-end não mudou, então os resultados da API não devem mudar, mas vale rodar de novo para ter o registro com a data nova.
+**Roteiro automático depois das mudanças:** a dupla rodou `testes/TestesCT.java` em 17/11/2026 às 21:13: 13 passaram, 0 falharam, 2 para verificar à mão (`testes/resultados/resultado-2026-11-17_21-13.md`). Os casos manuais estão em `testes/resultados/prints-2026-11-17/`.
 
 ## Limitações que continuam (declarar no TCC)
 
