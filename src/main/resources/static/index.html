@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232D5016%27/%3E%3Cg fill=%27%23F2B544%27%3E%3Cellipse cx=%2732%27 cy=%2740%27 rx=%2711%27 ry=%279.5%27/%3E%3Ccircle cx=%2718%27 cy=%2728%27 r=%275.5%27/%3E%3Ccircle cx=%2726.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2737.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2746%27 cy=%2728%27 r=%275.5%27/%3E%3C/g%3E%3C/svg%3E">
+  <meta name="description" content="Agende banho, tosa e consultas sem ligar: veja os horários livres, quem vai atender e receba um código para consultar ou cancelar."/>
+  <meta name="theme-color" content="#2D5016"/>
   <title>PetAgenda – Agendamentos para Pet Shops</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -132,8 +135,10 @@
 
     /* ── HERO ──────────────────────────────────────────────── */
     #hero {
-      min-height: 100vh;
-      display: flex; align-items: center;
+      min-height: min(100vh, 860px);
+      display: grid; align-items: center;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 3rem;
       padding: 120px 6vw 80px;
       position: relative;
       overflow: hidden;
@@ -230,12 +235,19 @@
       color: var(--white);
     }
 
+    /* Antes ficava em position:absolute com translateY(-50%), mas a animação
+       fadeUp sobrescrevia o transform e o cartão descia até ser cortado em
+       telas baixas (ex.: projetor 1366x768). Agora é uma coluna do grid. */
     .hero-visual {
-      position: absolute; right: 6vw; top: 50%;
-      transform: translateY(-50%);
-      width: clamp(280px, 38vw, 480px);
+      position: relative; z-index: 1;
+      justify-self: end;
+      width: 100%; max-width: 470px;
       animation: fadeUp 1.1s .3s ease both;
     }
+    .paw-svg { width: 100%; height: 100%; fill: var(--amber); opacity: .85; }
+    .linha-exemplo { display: flex; justify-content: space-between; align-items: center; gap: .8rem;
+      margin-top: .8rem; padding: .7rem 1rem; border: 1px dashed rgba(45,80,22,.25); border-radius: 12px; font-size: .85rem; color: #5A4D3E; }
+    .linha-exemplo code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; letter-spacing: 3px; color: var(--green); font-size: 1rem; }
 
     .hero-card {
       background: var(--white);
@@ -250,8 +262,8 @@
       font-size: 2.8rem;
       animation: floatPaw 3s ease-in-out infinite;
     }
-    .paw1 { top: -18px; right: 24px; animation-delay: 0s; }
-    .paw2 { bottom: -14px; left: 20px; animation-delay: 1s; font-size: 1.8rem; }
+    .paw1 { top: -20px; right: 24px; width: 44px; height: 44px; animation-delay: 0s; }
+    .paw2 { bottom: -16px; left: 20px; width: 30px; height: 30px; animation-delay: 1s; }
 
     .stat-row {
       display: flex; gap: 1.2rem; margin-top: 1.2rem;
@@ -310,7 +322,7 @@
 
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 1.6rem;
     }
 
@@ -320,6 +332,7 @@
       padding: 2rem 1.8rem;
       border: 1px solid rgba(45,80,22,.07);
       transition: transform .25s, box-shadow .25s;
+      display: flex; flex-direction: column;
     }
     .card:hover {
       transform: translateY(-6px);
@@ -327,9 +340,12 @@
     }
 
     .card-icon {
-      font-size: 2.4rem;
-      margin-bottom: 1rem;
-      display: block;
+      font-size: 2rem;
+      margin-bottom: 1.1rem;
+      width: 64px; height: 64px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--white);
+      box-shadow: 0 4px 14px rgba(45,80,22,.08);
     }
 
     .card h3 {
@@ -344,7 +360,7 @@
       line-height: 1.6;
     }
     .card-price {
-      margin-top: 1.2rem;
+      margin-top: auto; padding-top: 1.2rem;
       font-size: 1.3rem;
       font-weight: 700;
       color: var(--amber-texto);
@@ -462,6 +478,10 @@
     .form-wrap > * { min-width: 0; }
     form select, form input, form textarea { max-width: 100%; }
 
+    .form-info { position: sticky; top: 110px; }
+    .info-extra { margin-top: 2rem; padding: 1.2rem 1.4rem; border-radius: 16px;
+      background: rgba(0,0,0,.14); border: 1px solid rgba(255,255,255,.15); display: grid; gap: .7rem; font-size: .92rem; }
+    .info-extra a { color: var(--amber-claro); font-weight: 600; }
     .form-info h3 {
       font-family: 'Playfair Display', serif;
       font-size: 1.3rem;
@@ -650,8 +670,28 @@
     }
 
     /* ── RESPONSIVO ────────────────────────────────────────── */
+    .menu-toggle { display: none; }
     @media (max-width: 900px) {
+      #hero { grid-template-columns: 1fr; min-height: auto; padding-top: 130px; }
       .hero-visual { display: none; }
+      .form-info { position: static; }
+      .menu-toggle {
+        display: flex; align-items: center; gap: .5rem;
+        background: var(--white); color: var(--green); font-weight: 700; font-family: inherit; font-size: .9rem;
+        border: 1px solid rgba(45,80,22,.25); border-radius: 50px; padding: .45rem 1rem; cursor: pointer;
+      }
+      .menu-barras, .menu-barras::before, .menu-barras::after {
+        display: block; width: 16px; height: 2px; background: var(--green); border-radius: 2px; position: relative; content: '';
+      }
+      .menu-barras::before { position: absolute; top: -5px; }
+      .menu-barras::after { position: absolute; top: 5px; }
+      nav.menu-aberto .nav-links {
+        display: flex; flex-direction: column; align-items: stretch; gap: .4rem;
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: var(--cream); padding: 1rem 6vw 1.4rem; box-shadow: var(--shadow);
+      }
+      nav.menu-aberto .nav-links a { display: block; padding: .7rem .4rem; font-size: 1rem; }
+      nav.menu-aberto .nav-links .btn-login, nav.menu-aberto .nav-links .btn-nav { justify-content: center; text-align: center; }
       .form-wrap { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
       .nav-links { display: none; }
@@ -664,7 +704,10 @@
 
 <nav id="navbar" aria-label="Menu principal">
   <div class="logo">Pet<span>Agenda</span></div>
-  <ul class="nav-links">
+  <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="menuLinks">
+    <span class="menu-barras" aria-hidden="true"></span> Menu
+  </button>
+  <ul class="nav-links" id="menuLinks">
     <li><a href="#servicos">Serviços</a></li>
     <li><a href="#como-funciona">Como funciona</a></li>
     <li><a href="meus-agendamentos.html">Meus agendamentos</a></li>
@@ -696,22 +739,23 @@
        que o PetAgenda realmente faz, com a etiqueta "Exemplo ilustrativo". -->
   <div class="hero-visual" aria-label="Exemplo ilustrativo de agendamento">
     <div class="hero-card">
-      <div class="paw-float paw1" aria-hidden="true">🐾</div>
-      <div class="paw-float paw2" aria-hidden="true">🐾</div>
+      <div class="paw-float paw1" aria-hidden="true"><svg class="paw-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></div>
+      <div class="paw-float paw2" aria-hidden="true"><svg class="paw-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></div>
       <span class="tag-exemplo">Exemplo ilustrativo</span>
       <p style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;">Como fica o seu pedido</p>
       <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--warm);border-radius:14px;">
         <div style="font-size:2rem;" aria-hidden="true">🐕</div>
         <div>
           <div style="font-weight:600;color:var(--green);font-size:.95rem;">Rex – Banho & Tosa</div>
-          <div style="color:#6B5D4D;font-size:.8rem;">Sexta · 14:00 · 75 min</div>
+          <div style="color:#6B5D4D;font-size:.8rem;">Sexta · 14:00 · 75 min · com Ana</div>
         </div>
         <div style="margin-left:auto;background:#FFF3CD;color:#856404;font-size:.7rem;font-weight:600;padding:.3rem .7rem;border-radius:50px;">Pendente</div>
       </div>
+      <div class="linha-exemplo"><span>Seu código para consultar ou cancelar</span><code>K7P2QM</code></div>
       <div class="stat-row">
         <div class="stat">
-          <div class="stat-num" aria-hidden="true">⏱️</div>
-          <div class="stat-lbl">Bloqueio por duração</div>
+          <div class="stat-num" aria-hidden="true">👩‍⚕️</div>
+          <div class="stat-lbl">Quem vai atender</div>
         </div>
         <div class="stat">
           <div class="stat-num" aria-hidden="true">📅</div>
@@ -791,6 +835,10 @@
         <li>Consulte ou cancele pela internet com o seu código</li>
         <li>Seus dados ficam visíveis só para a equipe, com login</li>
       </ul>
+      <div class="info-extra">
+        <p><span aria-hidden="true">🕗</span> <strong>Horário de atendimento:</strong> das 08:00 às 18:00, de 30 em 30 minutos.</p>
+        <p><span aria-hidden="true">🔎</span> <strong>Já agendou?</strong> <a href="meus-agendamentos.html">Consulte ou cancele em Meus agendamentos</a> com o telefone e o código.</p>
+      </div>
     </div>
 
     <div>
@@ -913,6 +961,20 @@
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
+  // Menu do celular: abre e fecha a lista de links (telas até 900 px)
+  (function () {
+    const nav = document.getElementById('navbar');
+    const botao = document.getElementById('menuToggle');
+    function fechar() { nav.classList.remove('menu-aberto'); botao.setAttribute('aria-expanded', 'false'); }
+    botao.addEventListener('click', () => {
+      const abrir = !nav.classList.contains('menu-aberto');
+      nav.classList.toggle('menu-aberto', abrir);
+      botao.setAttribute('aria-expanded', String(abrir));
+    });
+    document.querySelectorAll('#menuLinks a').forEach(a => a.addEventListener('click', fechar));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fechar(); });
+  })();
+
   // ── Nav scroll ──
   window.addEventListener('scroll', () => {
     document.getElementById('navbar')

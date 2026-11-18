@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232D5016%27/%3E%3Cg fill=%27%23F2B544%27%3E%3Cellipse cx=%2732%27 cy=%2740%27 rx=%2711%27 ry=%279.5%27/%3E%3Ccircle cx=%2718%27 cy=%2728%27 r=%275.5%27/%3E%3Ccircle cx=%2726.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2737.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2746%27 cy=%2728%27 r=%275.5%27/%3E%3C/g%3E%3C/svg%3E">
     <title>Painel Administrativo - PetAgenda</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -91,7 +92,8 @@
         .info-linha { font-size: 0.95rem; }
         .info-linha strong { color: var(--muted); }
         .obs-box { background-color: #F8F9FA; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; color: var(--muted); font-style: italic; }
-        .vazio { text-align: center; color: var(--muted); padding: 40px; font-size: 1.1rem; grid-column: 1 / -1; }
+        .vazio { text-align: center; color: var(--muted); padding: 40px; font-size: 1.1rem; grid-column: 1 / -1; background: var(--white); border: 2px dashed #e5ded2; border-radius: var(--radius); }
+        .vazio small { display: block; font-size: .9rem; margin-top: .3rem; }
         .alerta-saude { background-color: #FDECEA; color: #8A1C1C; border-left: 4px solid #dc3545; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; }
 
         .card-acoes { display: flex; gap: 8px; margin-top: 6px; border-top: 1px solid #eee; padding-top: 14px; flex-wrap: wrap; }
@@ -120,6 +122,9 @@
         .indicador { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
         .indicador .valor { font-size: 1.5rem; font-weight: 600; color: var(--green); }
         .indicador .rotulo { font-size: 0.85rem; color: var(--muted); }
+        .indicador.texto { grid-column: span 2; }
+        .indicador.texto .valor { font-size: 1.15rem; line-height: 1.3; }
+        @media (max-width: 420px) { .indicador.texto { grid-column: auto; } }
 
         /* ── TABELAS E FORMULÁRIOS DO ADMINISTRADOR ── */
         .duas-colunas { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
@@ -159,7 +164,7 @@
 <body>
 
     <header>
-        <h1><span aria-hidden="true">🐾</span> PetAgenda | Painel</h1>
+        <h1><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true" style="fill:#F2B544;vertical-align:-4px"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg> PetAgenda | Painel</h1>
         <div class="header-direita">
             <span id="displayNome" class="nome-usuario"></span>
             <button type="button" id="btnMinhaSenha" class="btn-voltar">Trocar minha senha</button>
@@ -429,8 +434,8 @@
                     ['Atendimentos no mês', ind.atendimentosMes],
                     ['Faturamento do mês', dinheiro(ind.faturamentoMes)],
                     ['Serviço mais procurado (mês)', ind.servicoMaisProcurado]
-                ].forEach(([rotulo, valor]) => {
-                    const card = el('div', 'indicador');
+                ].forEach(([rotulo, valor], i, todos) => {
+                    const card = el('div', i === todos.length - 1 ? 'indicador texto' : 'indicador');
                     card.appendChild(el('div', 'valor', valor));
                     card.appendChild(el('div', 'rotulo', rotulo));
                     box.appendChild(card);
@@ -443,7 +448,9 @@
             api('/api/agendamentos?data=' + filtroData.value).then(dados => {
                 container.replaceChildren();
                 if (dados.length === 0) {
-                    container.appendChild(el('p', 'vazio', 'Nenhum agendamento nesta data.'));
+                    const v = el('p', 'vazio', '📅 Nenhum agendamento nesta data.');
+                    v.appendChild(el('small', null, 'Use Anterior e Próximo para ver outros dias.'));
+                    container.appendChild(v);
                     return;
                 }
                 dados.forEach(item => container.appendChild(montarCard(item)));
