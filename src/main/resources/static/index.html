@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 
+  <script>document.documentElement.classList.add('js');</script>
+
   <style>
     /* ── RESET & VARIÁVEIS ─────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,6 +21,11 @@
       --green2:  #4A7C2F;
       --amber:   #C8861A;
       --amber2:  #E8A030;
+      /* Correção de acessibilidade (WCAG 1.4.3): o laranja original (#C8861A) tem
+         contraste de só 2,83:1 sobre o creme. Para TEXTO usamos este tom mais
+         escuro (5,50:1); o laranja original fica para fundos e detalhes. */
+      --amber-texto: #8A5A00;
+      --amber-claro: #F2B860; /* texto laranja sobre o verde: 5,20:1 */
       --brown:   #6B4226;
       --text:    #2A2318;
       --muted:   #7A6A58;
@@ -51,12 +58,14 @@
       50%      { box-shadow: 0 0 0 14px rgba(200,134,26,0); }
     }
 
-    .reveal {
+    /* Só esconde para animar se o JavaScript estiver ativo (classe "js" no <html>).
+       Sem JS, o conteúdo continua visível. */
+    .js .reveal {
       opacity: 0;
       transform: translateY(28px);
       transition: opacity .7s ease, transform .7s ease;
     }
-    .reveal.visible {
+    .js .reveal.visible {
       opacity: 1;
       transform: none;
     }
@@ -148,7 +157,7 @@
       display: inline-block;
       background: var(--warm);
       border: 1px solid rgba(200,134,26,.3);
-      color: var(--amber);
+      color: var(--amber-texto);
       font-size: .78rem;
       font-weight: 600;
       letter-spacing: 1.5px;
@@ -168,7 +177,7 @@
     }
     h1 em {
       font-style: normal;
-      color: var(--amber);
+      color: var(--amber-texto);
       position: relative;
     }
     h1 em::after {
@@ -262,7 +271,7 @@
     }
     .stat-lbl {
       font-size: .72rem;
-      color: var(--muted);
+      color: #6B5D4D; /* --muted sobre --warm dava 4,30:1; este dá 5,25:1 */
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: .5px;
@@ -275,7 +284,7 @@
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--amber);
+      color: var(--amber-texto);
       margin-bottom: .6rem;
     }
     h2 {
@@ -338,7 +347,7 @@
       margin-top: 1.2rem;
       font-size: 1.3rem;
       font-weight: 700;
-      color: var(--amber);
+      color: var(--amber-texto);
       font-family: 'Playfair Display', serif;
     }
     .card-price span {
@@ -375,7 +384,7 @@
       margin: 0 auto 1.2rem;
     }
 
-    .step h4 {
+    .step h3 {
       font-family: 'Playfair Display', serif;
       font-size: 1.05rem;
       color: var(--green);
@@ -389,7 +398,7 @@
       color: var(--white);
     }
 
-    #agendamento .section-label { color: var(--amber2); }
+    #agendamento .section-label { color: var(--amber-claro); }
     #agendamento h2 { color: var(--white); }
     #agendamento .section-sub { color: rgba(255,255,255,.7); }
 
@@ -462,7 +471,7 @@
 
     input, select, textarea {
       background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.55); /* borda visível: 4,03:1 (WCAG 1.4.11) */
       border-radius: 10px;
       padding: .75rem 1rem;
       color: var(--white);
@@ -471,7 +480,12 @@
       outline: none;
       transition: border-color .2s, background .2s;
     }
-    input::placeholder, textarea::placeholder { color: rgba(255,255,255,.35); }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,.6); }
+    input:focus-visible, select:focus-visible, textarea:focus-visible,
+    .btn-form:focus-visible, .consentimento input:focus-visible {
+      outline: 3px solid var(--amber-claro);
+      outline-offset: 2px;
+    }
     input:focus, select:focus, textarea:focus {
       border-color: var(--amber2);
       background: rgba(255,255,255,.15);
@@ -480,18 +494,42 @@
     textarea { resize: vertical; min-height: 90px; }
 
     .btn-form {
-      background: var(--amber);
+      background: #9A6200; /* branco sobre #C8861A = 3,05:1; sobre #9A6200 = 5,10:1 */
       color: var(--white);
       border: none;
       padding: 1rem 2rem;
       border-radius: 50px;
       font-weight: 700;
       font-size: 1rem;
+      font-family: inherit;
       cursor: pointer;
       transition: background .2s, transform .15s;
       margin-top: .5rem;
     }
-    .btn-form:hover { background: var(--amber2); transform: scale(1.02); }
+    .btn-form:hover { background: #7D5000; transform: scale(1.02); }
+    .btn-form:disabled { opacity: .7; cursor: wait; transform: none; }
+
+    /* Aviso de privacidade e caixa de ciência (LGPD) */
+    .aviso-privacidade {
+      font-size: .85rem;
+      color: rgba(255,255,255,.85);
+      background: rgba(0,0,0,.15);
+      border-radius: 10px;
+      padding: .8rem 1rem;
+      line-height: 1.5;
+    }
+    .aviso-privacidade a, .consentimento a { color: var(--amber-claro); }
+    label.consentimento {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: .6rem;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+      font-size: .9rem;
+      color: rgba(255,255,255,.9);
+    }
+    .consentimento input { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; accent-color: var(--amber); }
 
     /* TOAST */
     #toast {
@@ -502,12 +540,27 @@
       border-radius: 14px;
       font-weight: 600;
       box-shadow: 0 8px 30px rgba(0,0,0,.25);
-      transform: translateY(120px);
+      max-width: min(440px, calc(100vw - 2rem));
+      line-height: 1.45;
+      transform: translateY(160px);
       opacity: 0;
       transition: all .4s ease;
     }
     #toast.show { transform: none; opacity: 1; }
     #toast.erro { background: #b3261e; }
+
+    .tag-exemplo {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--amber-texto);
+      border: 1px dashed var(--amber-texto);
+      border-radius: 6px;
+      padding: .1rem .5rem;
+      margin-bottom: .8rem;
+    }
 
     /* ── FOOTER ────────────────────────────────────────────── */
     footer {
@@ -537,32 +590,47 @@
     }
     .footer-links a:hover { color: var(--amber2); }
 
+    /* ── MOVIMENTO REDUZIDO ──────────────────────────────────
+       Quem ativou "reduzir movimento" no sistema (Windows, Android, iOS)
+       não vê pulso, patas flutuando nem rolagem suave (WCAG 2.2.2 / 2.3.3). */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      html { scroll-behavior: auto; }
+      .js .reveal { opacity: 1; transform: none; }
+    }
+
     /* ── RESPONSIVO ────────────────────────────────────────── */
     @media (max-width: 900px) {
       .hero-visual { display: none; }
       .form-wrap { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
       .nav-links { display: none; }
+      #toast { left: 1rem; right: 1rem; bottom: 1rem; }
       footer { flex-direction: column; text-align: center; }
     }
   </style>
 </head>
 <body>
 
-<nav id="navbar">
+<nav id="navbar" aria-label="Menu principal">
   <div class="logo">Pet<span>Agenda</span></div>
   <ul class="nav-links">
     <li><a href="#servicos">Serviços</a></li>
     <li><a href="#como-funciona">Como funciona</a></li>
-    <li><a href="login.html" class="btn-login">🔒 Área Restrita</a></li>
+    <li><a href="login.html" class="btn-login"><span aria-hidden="true">🔒</span> Área Restrita</a></li>
     <li><a href="#agendamento" class="btn-nav">Agendar agora</a></li>
   </ul>
 </nav>
 
+<main id="conteudo">
+
 <section id="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <div class="badge">🐾 Pet Shop em Timbiras – MA</div>
+    <div class="badge"><span aria-hidden="true">🐾</span> Pet Shop em Timbiras – MA</div>
     <h1>Seu pet merece o melhor <em>cuidado</em></h1>
     <p class="hero-sub">
       Agende banho, tosa, consultas veterinárias e muito mais de forma
@@ -574,31 +642,36 @@
     </div>
   </div>
 
-  <div class="hero-visual">
+  <!-- Cartão ilustrativo. Antes mostrava números que nunca foram medidos
+       ("98% Satisfação", "0 Conflitos"), um profissional ("Ana") que o sistema
+       não escolhe e o status "Confirmado", que não existe. Agora mostra só o
+       que o PetAgenda realmente faz, com a etiqueta "Exemplo ilustrativo". -->
+  <div class="hero-visual" aria-label="Exemplo ilustrativo de agendamento">
     <div class="hero-card">
-      <div class="paw-float paw1">🐾</div>
-      <div class="paw-float paw2">🐾</div>
-      <p style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;">Próximo agendamento</p>
+      <div class="paw-float paw1" aria-hidden="true">🐾</div>
+      <div class="paw-float paw2" aria-hidden="true">🐾</div>
+      <span class="tag-exemplo">Exemplo ilustrativo</span>
+      <p style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;">Como fica o seu pedido</p>
       <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--warm);border-radius:14px;">
-        <div style="font-size:2rem;">🐕</div>
+        <div style="font-size:2rem;" aria-hidden="true">🐕</div>
         <div>
           <div style="font-weight:600;color:var(--green);font-size:.95rem;">Rex – Banho & Tosa</div>
-          <div style="color:var(--muted);font-size:.8rem;">Hoje · 14h00 · Profissional: Ana</div>
+          <div style="color:#6B5D4D;font-size:.8rem;">Sexta · 14:00 · 75 min</div>
         </div>
-        <div style="margin-left:auto;background:var(--green2);color:#fff;font-size:.7rem;font-weight:600;padding:.3rem .7rem;border-radius:50px;">Confirmado</div>
+        <div style="margin-left:auto;background:#FFF3CD;color:#856404;font-size:.7rem;font-weight:600;padding:.3rem .7rem;border-radius:50px;">Pendente</div>
       </div>
       <div class="stat-row">
         <div class="stat">
-          <div class="stat-num">98%</div>
-          <div class="stat-lbl">Satisfação</div>
+          <div class="stat-num" aria-hidden="true">⏱️</div>
+          <div class="stat-lbl">Bloqueio por duração</div>
         </div>
         <div class="stat">
-          <div class="stat-num">0</div>
-          <div class="stat-lbl">Conflitos</div>
+          <div class="stat-num" aria-hidden="true">📅</div>
+          <div class="stat-lbl">Só horários livres</div>
         </div>
         <div class="stat">
-          <div class="stat-num">24h</div>
-          <div class="stat-lbl">Online</div>
+          <div class="stat-num" aria-hidden="true">⚠️</div>
+          <div class="stat-lbl">Alerta de saúde</div>
         </div>
       </div>
     </div>
@@ -609,45 +682,47 @@
   <div class="section-head reveal">
     <span class="section-label">O que oferecemos</span>
     <h2>Serviços disponíveis</h2>
-    <p class="section-sub">Tudo que seu pet precisa, com profissionais qualificados e horários sem conflitos.</p>
+    <p class="section-sub">Tudo que seu pet precisa, com preço e duração claros e horários sem conflitos.</p>
   </div>
 
+  <!-- Os preços e durações destes cards vêm do banco (GET /api/servicos), os
+       mesmos usados no formulário. Assim a página nunca mostra dois preços. -->
   <div class="cards-grid">
     <div class="card reveal">
-      <span class="card-icon">🛁</span>
+      <span class="card-icon" aria-hidden="true">🛁</span>
       <h3>Banho</h3>
       <p>Banho completo com produtos especializados de acordo com o porte e raça do seu pet.</p>
-      <div class="card-price">R$ 40,00 <span>/ a partir de</span></div>
+      <div class="card-price" data-servico="1">Carregando preço...</div>
     </div>
     <div class="card reveal">
-      <span class="card-icon">✂️</span>
+      <span class="card-icon" aria-hidden="true">✂️</span>
       <h3>Tosa</h3>
       <p>Tosa higiênica ou completa, realizada por tosadores experientes e com carinho.</p>
-      <div class="card-price">R$ 55,00 <span>/ a partir de</span></div>
+      <div class="card-price" data-servico="2">Carregando preço...</div>
     </div>
     <div class="card reveal">
-      <span class="card-icon">🩺</span>
+      <span class="card-icon" aria-hidden="true">🩺</span>
       <h3>Consulta Veterinária</h3>
       <p>Consultas clínicas gerais com veterinário para checkup, vacinas e orientações.</p>
-      <div class="card-price">R$ 90,00 <span>/ consulta</span></div>
+      <div class="card-price" data-servico="3">Carregando preço...</div>
     </div>
     <div class="card reveal">
-      <span class="card-icon">💆</span>
+      <span class="card-icon" aria-hidden="true">💆</span>
       <h3>Banho + Tosa</h3>
       <p>Pacote completo de higiene com desconto especial. O favorito dos tutores!</p>
-      <div class="card-price">R$ 85,00 <span>/ pacote</span></div>
+      <div class="card-price" data-servico="4">Carregando preço...</div>
     </div>
     <div class="card reveal">
-      <span class="card-icon">💅</span>
+      <span class="card-icon" aria-hidden="true">💅</span>
       <h3>Hidratação</h3>
       <p>Tratamento capilar profundo para pelagem brilhante, macia e saudável.</p>
-      <div class="card-price">R$ 35,00 <span>/ a partir de</span></div>
+      <div class="card-price" data-servico="5">Carregando preço...</div>
     </div>
     <div class="card reveal">
-      <span class="card-icon">🦷</span>
+      <span class="card-icon" aria-hidden="true">🦷</span>
       <h3>Escovação Dental</h3>
       <p>Higiene bucal especializada para prevenir tártaro e mau hálito no seu pet.</p>
-      <div class="card-price">R$ 25,00 <span>/ sessão</span></div>
+      <div class="card-price" data-servico="6">Carregando preço...</div>
     </div>
   </div>
 </section>
@@ -656,28 +731,28 @@
   <div class="section-head reveal" style="text-align:center;">
     <span class="section-label">Simples assim</span>
     <h2>Como funciona o agendamento</h2>
-    <p class="section-sub" style="margin:0 auto;">Em menos de 2 minutos seu horário está garantido, sem ligações e sem filas.</p>
+    <p class="section-sub" style="margin:0 auto;">Em poucos passos você pede seu horário, sem ligações e sem filas.</p>
   </div>
 
   <div class="steps">
     <div class="step reveal">
       <div class="step-num">1</div>
-      <h4>Preencha o formulário</h4>
-      <p>Informe o nome do tutor, do pet, serviço desejado e o horário preferido.</p>
+      <h3>Preencha o formulário</h3>
+      <p>Informe o nome do tutor, do pet, o serviço e um dos horários livres.</p>
     </div>
     <div class="step reveal">
       <div class="step-num">2</div>
-      <h4>Sistema valida a disponibilidade</h4>
+      <h3>Sistema valida a disponibilidade</h3>
       <p>O PetAgenda verifica automaticamente os horários livres, sem conflitos.</p>
     </div>
     <div class="step reveal">
       <div class="step-num">3</div>
-      <h4>Receba a confirmação</h4>
-      <p>Sua solicitação é registrada e nossa equipe confirma rapidamente.</p>
+      <h3>Receba a confirmação</h3>
+      <p>Sua solicitação fica registrada como <strong>Pendente</strong> e a equipe do pet shop confirma pelo telefone informado.</p>
     </div>
     <div class="step reveal">
       <div class="step-num">4</div>
-      <h4>Compareça no horário</h4>
+      <h3>Compareça no horário</h3>
       <p>Chegue tranquilo! Tudo estará preparado para receber você e seu pet.</p>
     </div>
   </div>
@@ -694,12 +769,11 @@
     <div class="form-info reveal">
       <h3>Por que escolher o PetAgenda?</h3>
       <ul class="info-list">
-        <li>Agendamento online 24 horas por dia</li>
-        <li>Sem conflitos de horários garantido</li>
-        <li>Histórico completo de atendimentos</li>
-        <li>Profissionais qualificados e experientes</li>
-        <li>Cancelamento com facilidade</li>
-        <li>Atendimento personalizado para cada pet</li>
+        <li>Só aparecem horários realmente livres</li>
+        <li>O sistema bloqueia horários que se sobrepõem</li>
+        <li>Preço e duração do serviço antes de confirmar</li>
+        <li>Restrições de saúde do pet chegam destacadas à equipe</li>
+        <li>Seus dados ficam visíveis só para a equipe, com login</li>
       </ul>
     </div>
 
@@ -707,11 +781,11 @@
       <div class="form-row">
         <label>
           Nome do Tutor
-          <input type="text" id="nomeTutor" placeholder="Ex: João Silva" required/>
+          <input type="text" id="nomeTutor" autocomplete="name" placeholder="Ex: João Silva" required/>
         </label>
         <label>
-          Telefone
-          <input type="tel" id="telefone" placeholder="(99) 99999-9999" required/>
+          Telefone (com DDD)
+          <input type="tel" id="telefone" inputmode="tel" autocomplete="tel" placeholder="(99) 98888-7777" required/>
         </label>
       </div>
 
@@ -751,11 +825,11 @@
 
       <div class="form-row">
         <label>
-          Data preferida
+          Data
           <input type="date" id="data" required/>
         </label>
         <label>
-          Horário preferido
+          Horário disponível
           <select id="horario" required>
             <option value="">Escolha serviço e data</option>
           </select>
@@ -767,25 +841,41 @@
         <textarea id="obs" placeholder="Alguma informação importante sobre seu pet..."></textarea>
       </label>
 
-      <button type="submit" class="btn-form">🐾 Solicitar Agendamento</button>
+      <!-- LGPD (Lei 13.709/2018): informar, no ponto de coleta, para que os dados
+           servem (art. 6º, I e VI; art. 9º) e como o titular exerce seus direitos (art. 18). -->
+      <p class="aviso-privacidade" id="avisoPrivacidade">
+        Usamos seu nome e telefone só para confirmar e organizar este atendimento.
+        Os dados do pet ajudam a equipe a cuidar dele com segurança. Nada é
+        compartilhado com terceiros. Veja o <a href="privacidade.html" target="_blank" rel="noopener">aviso de privacidade</a>.
+      </p>
+      <label class="consentimento">
+        <input type="checkbox" id="aceitePrivacidade" required aria-describedby="avisoPrivacidade"/>
+        <span>Li o aviso de privacidade e concordo com o uso dos meus dados para este agendamento.</span>
+      </label>
+
+      <button type="submit" class="btn-form" id="btnEnviar"><span aria-hidden="true">🐾</span> Solicitar Agendamento</button>
     </form>
   </div>
 </section>
 
+</main>
+
 <footer>
   <div>
     <div class="footer-logo">Pet<span>Agenda</span></div>
-    <p style="margin-top:.4rem;">Timbiras – MA · (99) 9 9999-9999</p>
+    <p style="margin-top:.4rem;">Timbiras – MA · Protótipo acadêmico (TCC)</p>
   </div>
   <p>© 2026 PetAgenda. Todos os direitos reservados.</p>
   <div class="footer-links">
     <a href="#servicos">Serviços</a>
     <a href="#como-funciona">Como funciona</a>
     <a href="#agendamento">Agendar</a>
+    <a href="privacidade.html">Privacidade</a>
   </div>
 </footer>
 
-<div id="toast">✅ Solicitação enviada com sucesso!</div>
+<!-- aria-live: o leitor de tela anuncia a mensagem quando ela muda (WCAG 4.1.3) -->
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
   // ── Nav scroll ──
@@ -814,10 +904,15 @@
   // ── Toast de sucesso ou erro ──
   function mostrarToast(mensagem, ehErro) {
     const toast = document.getElementById('toast');
+    // Erro usa role="alert" (anúncio imediato); sucesso usa role="status".
+    toast.setAttribute('role', ehErro ? 'alert' : 'status');
+    toast.setAttribute('aria-live', ehErro ? 'assertive' : 'polite');
     toast.textContent = (ehErro ? '⚠️ ' : '✅ ') + mensagem;
     toast.classList.toggle('erro', ehErro);
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4000);
+    clearTimeout(mostrarToast.timer);
+    // 7 segundos (antes 4): tempo para ler com calma (heurística H1 de Nielsen)
+    mostrarToast.timer = setTimeout(() => toast.classList.remove('show'), 7000);
   }
 
   // ── Carrega os serviços do banco (evita IDs fixos e desatualizados no HTML) ──
@@ -831,9 +926,26 @@
         opt.value = s.id;
         opt.textContent = s.descricao + ' – R$ ' + Number(s.preco).toFixed(2).replace('.', ',') + ' (' + s.duracaoMinutos + ' min)';
         selectServico.appendChild(opt);
+
+        // Preenche o preço do card correspondente com o valor do banco
+        const card = document.querySelector('.card-price[data-servico="' + s.id + '"]');
+        if (card) {
+          card.textContent = 'R$ ' + Number(s.preco).toFixed(2).replace('.', ',') + ' ';
+          const dur = document.createElement('span');
+          dur.textContent = '· ' + s.duracaoMinutos + ' min';
+          card.appendChild(dur);
+          card.dataset.carregado = 'sim';
+        }
+      });
+      // Card cujo serviço não existe mais no banco: não inventa preço
+      document.querySelectorAll('.card-price:not([data-carregado])').forEach(c => {
+        c.textContent = 'Indisponível no momento';
       });
     })
-    .catch(() => mostrarToast('Não foi possível carregar os serviços. O servidor está rodando?', true));
+    .catch(() => {
+      document.querySelectorAll('.card-price').forEach(c => { c.textContent = 'Preço indisponível no momento'; });
+      mostrarToast('Não foi possível carregar os serviços. O servidor está rodando?', true);
+    });
 
   // ── Busca horários livres sempre que serviço ou data mudarem ──
   const selectHorario = document.getElementById('horario');
@@ -868,6 +980,12 @@
   document.getElementById('formAgendamento').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    // Mostra que está enviando e evita clique duplo (heurísticas H1 e H5)
+    const btnEnviar = document.getElementById('btnEnviar');
+    const textoOriginal = btnEnviar.innerHTML;
+    btnEnviar.disabled = true;
+    btnEnviar.textContent = 'Enviando...';
+
     const dados = {
       tutor:      document.getElementById('nomeTutor').value,
       telefone:   document.getElementById('telefone').value,
@@ -889,7 +1007,10 @@
     .then(response => response.json().then(corpo => ({ ok: response.ok, status: response.status, corpo })))
     .then(({ ok, status, corpo }) => {
       if (ok) {
-        mostrarToast(corpo.mensagem || 'Solicitação enviada com sucesso!', false);
+        // Data no formato brasileiro e próximo passo explicado (heurísticas H2 e H10)
+        const msg = (corpo.mensagem || 'Solicitação enviada com sucesso!')
+          .replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1');
+        mostrarToast(msg + ' Status: Pendente. O pet shop confirma pelo telefone informado.', false);
         document.getElementById('formAgendamento').reset();
         selectHorario.innerHTML = '<option value="">Escolha serviço e data</option>';
       } else {
@@ -898,7 +1019,11 @@
         if (status === 409) carregarHorarios();
       }
     })
-    .catch(() => mostrarToast('Erro de comunicação com o servidor.', true));
+    .catch(() => mostrarToast('Erro de comunicação com o servidor. Verifique a conexão e tente de novo.', true))
+    .finally(() => {
+      btnEnviar.disabled = false;
+      btnEnviar.innerHTML = textoOriginal;
+    });
   });
 </script>
 </body>

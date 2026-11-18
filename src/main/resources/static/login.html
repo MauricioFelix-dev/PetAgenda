@@ -42,14 +42,14 @@
             font-size: 2rem;
             font-weight: 900;
             color: var(--green);
-            margin-bottom: 8px;
+            margin: 0 0 8px;
         }
         .logo span { color: var(--amber); }
 
         .subtitulo {
             color: #7A6A58;
             font-size: 0.95rem;
-            margin-bottom: 30px;
+            margin: 0 0 30px;
         }
 
         .form-group {
@@ -68,7 +68,7 @@
         input {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #8C8C8C; /* #ddd tinha só 1,36:1; este tem 3,36:1 (WCAG 1.4.11) */
             border-radius: 8px;
             font-size: 1rem;
             font-family: 'DM Sans', sans-serif;
@@ -77,7 +77,9 @@
             box-sizing: border-box;
         }
 
-        input:focus { border-color: var(--amber); }
+        input:focus { border-color: var(--green); }
+        input:focus-visible, .btn-login:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+        .btn-login:disabled { opacity: .7; cursor: wait; }
 
         .btn-login {
             width: 100%;
@@ -106,25 +108,27 @@
 </head>
 <body>
 
-    <div class="login-box">
-        <div class="logo">Pet<span>Agenda</span></div>
-        <div class="subtitulo">Acesso restrito para funcionários</div>
+    <main class="login-box">
+        <h1 class="logo">Pet<span>Agenda</span></h1>
+        <p class="subtitulo">Acesso restrito para funcionários</p>
 
         <form id="formLogin">
             <div class="form-group">
-                <label>Login de Usuário</label>
-                <input type="text" id="login" placeholder="Ex: admin" required>
+                <label for="login">Login de usuário</label>
+                <input type="text" id="login" autocomplete="username" placeholder="Ex: admin" required>
             </div>
             
             <div class="form-group">
-                <label>Senha</label>
-                <input type="password" id="senha" placeholder="••••••" required>
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" autocomplete="current-password" required>
             </div>
 
-            <button type="submit" class="btn-login">Entrar no Sistema</button>
-            <div id="mensagemErro" class="mensagem-erro">Login ou senha incorretos!</div>
+            <button type="submit" class="btn-login" id="btnEntrar">Entrar no sistema</button>
+            <!-- role="alert": o leitor de tela anuncia o erro assim que ele aparece -->
+            <div id="mensagemErro" class="mensagem-erro" role="alert"></div>
         </form>
-    </div>
+        <p style="margin-top:24px;font-size:.9rem;"><a href="/" style="color:var(--green);font-weight:600;">← Voltar para a página inicial</a></p>
+    </main>
 
     <script>
         document.getElementById('formLogin').addEventListener('submit', function(e) {
@@ -133,6 +137,18 @@
             const loginDigitado = document.getElementById('login').value;
             const senhaDigitada = document.getElementById('senha').value;
             const msgErro = document.getElementById('mensagemErro');
+            const btn = document.getElementById('btnEntrar');
+
+            // Limpa o erro anterior e mostra que está processando (heurística H1)
+            msgErro.style.display = 'none';
+            msgErro.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+
+            function mostrarErro(texto) {
+                msgErro.textContent = texto;
+                msgErro.style.display = 'block';
+            }
 
             fetch('/api/login', {
                 method: 'POST',
@@ -141,21 +157,25 @@
             })
             .then(resposta => {
                 if (resposta.ok) {
-                    return resposta.json();
+                    return resposta.json().then(dadosUsuario => {
+                        // O controle de acesso real é a sessão no servidor; aqui guardamos só o nome para exibir
+                        sessionStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
+                        window.location.href = 'dashboard.html';
+                    });
+                }
+                // Mensagens diferentes para causas diferentes (heurística H9 de Nielsen)
+                if (resposta.status === 401) {
+                    mostrarErro('Login ou senha incorretos. Confira e tente de novo.');
                 } else {
-                    throw new Error('Credenciais inválidas');
+                    mostrarErro('O servidor teve um problema (erro ' + resposta.status + '). Tente novamente em instantes.');
                 }
             })
-            .then(dadosUsuario => {
-                // O controle de acesso real é a sessão no servidor; aqui guardamos só o nome para exibir
-                sessionStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
-                
-                // E redirecionamos para o painel!
-                window.location.href = 'dashboard.html';
+            .catch(() => {
+                mostrarErro('Não foi possível falar com o servidor. Verifique se o sistema está ligado.');
             })
-            .catch(erro => {
-                // Mostra a mensagem vermelha de erro
-                msgErro.style.display = 'block';
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Entrar no sistema';
             });
         });
     </script>
