@@ -1,5 +1,5 @@
 // =====================================================================
-// PetAgenda - Roteiro automatico dos casos de teste CT-01 a CT-13
+// PetAgenda - Roteiro automatico dos casos de teste CT-01 a CT-19
 //
 // O QUE FAZ: conversa com o sistema JA RODANDO (http://localhost:8080)
 // do mesmo jeito que a landing page e o painel fazem, e confere se cada
@@ -199,6 +199,91 @@ public class TestesCT {
         registrar("CT-12 XSS (dado)", x.status == 200 && lista.contains("<img src=x onerror=alert(1)>"),
                 "texto guardado como texto. No PAINEL deve aparecer escrito e NENHUM alerta pode abrir (print)");
 
+        // =================================================================
+        // ETAPA 3 - casos novos (CT-14 a CT-19)
+        // =================================================================
+
+        // CT-14 Regra de status: mudancas proibidas sao recusadas
+        int st1 = put("/api/agendamento/" + id08 + "/status", "{\"status\":\"Pendente\"}").status;   // Concluido -> Pendente
+        int st2 = put("/api/agendamento/" + idBT + "/status", "{\"status\":\"Pendente\"}").status;   // Cancelado -> Pendente
+        registrar("CT-14 Status proibido", st1 == 409 && st2 == 409,
+                "Concluido -> Pendente: " + st1 + "; Cancelado -> Pendente: " + st2 + " (esperado 409 nos dois)");
+
+        // ---------------------------------------------------------------
+        // CT-15 Profissionais diferentes no mesmo horario
+        // As 08:00 ja existe um Banho (Ana). A Consulta e da Dra. Helena: pode no mesmo horario.
+        Resp c1 = agendar("Hugo Teste", "99912340001", "Bidu", 3, dia, "08:00", "", "");
+        Resp c2 = agendar("Iris Teste", "99912340002", "Fifi", 3, dia, "08:00", "", "");
+        registrar("CT-15 Antichoque por profissional", c1.status == 200 && c2.status == 409
+                        && c1.corpo.contains("Dra. Helena"),
+                "Consulta 08:00 (Banho da Ana no mesmo horario) -> " + c1.status + " com a Dra. Helena: "
+                        + (c1.corpo.contains("Dra. Helena") ? "sim" : "NAO") + "; 2a Consulta 08:00 -> " + c2.status + " (esperado 200 e 409)");
+
+        // ---------------------------------------------------------------
+        // CT-16 Bloqueio de agenda (feriado de manha) e remocao do bloqueio
+        LocalDate diaB = escolherDiaVazio();
+        Resp bq = post("/api/admin/bloqueios", "{\"data\":\"" + diaB + "\",\"diaInteiro\":false,\"horaInicio\":\"08:00\","
+                + "\"horaFim\":\"12:00\",\"idFuncionario\":null,\"motivo\":\"Feriado (teste)\"}");
+        String livresB = get("/api/horarios-disponiveis?data=" + diaB + "&servico=1").corpo;
+        int agB = agendar("Joao Teste", "99912340003", "Toby", 1, diaB, "09:00", "", "").status;
+        String idBloq = idDoBloqueio(get("/api/admin/bloqueios").corpo, "Feriado (teste)");
+        int del = enviar(HttpRequest.newBuilder(URI.create(BASE + "/api/admin/bloqueios/" + idBloq)).DELETE()).status;
+        String livresB2 = get("/api/horarios-disponiveis?data=" + diaB + "&servico=1").corpo;
+        boolean semManha = !livresB.contains("\"08:00\"") && !livresB.contains("\"11:30\"") && livresB.contains("\"12:00\"");
+        boolean voltou = contar(livresB2, "\"") / 2 == 20;
+        registrar("CT-16 Bloqueio de agenda", bq.status == 200 && semManha && agB != 200 && del == 200 && voltou,
+                "bloquear 08:00-12:00 em " + diaB + " -> " + bq.status + "; manha sumiu da lista: " + (semManha ? "sim" : "NAO")
+                        + "; agendar 09:00 -> " + agB + "; remover bloqueio -> " + del + "; 20 horarios de volta: " + (voltou ? "sim" : "NAO"));
+
+        // ---------------------------------------------------------------
+        // CT-17 Perfil Atendente nao entra nas telas de administrador
+        String loginAt = "atend" + (System.currentTimeMillis() % 100000);
+        Resp novoAt = post("/api/admin/funcionarios", "{\"nome\":\"Atendente Teste\",\"telefone\":\"99912340004\","
+                + "\"email\":\"" + loginAt + "@teste.com\",\"login\":\"" + loginAt + "\",\"perfil\":\"Atendente\",\"senha\":\"teste123\"}");
+        HttpClient clienteAdmin = cliente;
+        cliente = HttpClient.newBuilder().cookieHandler(new CookieManager()).build();
+        int lAt = post("/api/login", "{\"login\":\"" + loginAt + "\",\"senha\":\"teste123\"}").status;
+        int agendaAt = get("/api/agendamentos?data=" + dia).status;
+        int admServ = get("/api/admin/servicos").status;
+        int admFunc = get("/api/admin/funcionarios").status;
+        cliente = clienteAdmin;
+        registrar("CT-17 Perfis de acesso", novoAt.status == 200 && lAt == 200 && agendaAt == 200 && admServ == 403 && admFunc == 403,
+                "admin cria atendente -> " + novoAt.status + "; atendente entra -> " + lAt + "; ve a agenda -> " + agendaAt
+                        + "; servicos (admin) -> " + admServ + "; funcionarios (admin) -> " + admFunc + " (esperado 403)");
+
+        // ---------------------------------------------------------------
+        // CT-18 Meus agendamentos: o tutor consulta e cancela com telefone + codigo
+        Resp tk = agendar("Lia Teste", "(99) 91234-0005", "Pipoca", 3, dia, "10:00", "", "");
+        String cod = campo(tk.corpo, "codigo");
+        String acessoOk = "{\"telefone\":\"99912340005\",\"codigo\":\"" + cod.toLowerCase() + "\"";
+        int verErrado = post("/api/meus-agendamentos", "{\"telefone\":\"99912340005\",\"codigo\":\"ZZZZZZ\"}").status;
+        Resp ver = post("/api/meus-agendamentos", acessoOk + "}");
+        int cancTutor = post("/api/meus-agendamentos/cancelar", acessoOk + ",\"codigoCancelar\":\"" + cod + "\"}").status;
+        int cancDeNovo = post("/api/meus-agendamentos/cancelar", acessoOk + ",\"codigoCancelar\":\"" + cod + "\"}").status;
+        registrar("CT-18 Meus agendamentos (tutor)",
+                cod.length() == 6 && verErrado == 404 && ver.status == 200 && ver.corpo.contains("Pipoca") && cancTutor == 200 && cancDeNovo == 409,
+                "codigo recebido: " + cod + "; codigo errado -> " + verErrado + "; codigo certo -> " + ver.status
+                        + "; cancelar -> " + cancTutor + "; cancelar de novo -> " + cancDeNovo + " (esperado 404, 200, 200, 409)");
+
+        // ---------------------------------------------------------------
+        // CT-19 Cadastro de servico e troca de senha
+        String nomeServ = "Servico Teste " + (System.currentTimeMillis() % 100000);
+        String jsServ = "{\"descricao\":\"" + nomeServ + "\",\"detalhes\":\"teste\",\"icone\":\"\",\"preco\":\"30\","
+                + "\"duracaoMinutos\":\"30\",\"idResponsavel\":\"2\",\"ativo\":";
+        int criaServ = post("/api/admin/servicos", jsServ + "true}").status;
+        boolean naPagina = get("/api/servicos").corpo.contains(nomeServ);
+        String idServ = idDoServico(get("/api/admin/servicos").corpo, nomeServ);
+        int desativa = put("/api/admin/servicos/" + idServ, jsServ + "false}").status;
+        boolean sumiu = !get("/api/servicos").corpo.contains(nomeServ);
+        int senhaErrada = put("/api/minha-senha", "{\"senhaAtual\":\"errada-000\",\"novaSenha\":\"outra123\"}").status;
+        int trocou = put("/api/minha-senha", "{\"senhaAtual\":\"" + esc(SENHA) + "\",\"novaSenha\":\"temp-12345\"}").status;
+        int voltouSenha = put("/api/minha-senha", "{\"senhaAtual\":\"temp-12345\",\"novaSenha\":\"" + esc(SENHA) + "\"}").status;
+        registrar("CT-19 Servicos e senha",
+                criaServ == 200 && naPagina && desativa == 200 && sumiu && senhaErrada == 400 && trocou == 200 && voltouSenha == 200,
+                "criar servico -> " + criaServ + " (aparece na pagina: " + (naPagina ? "sim" : "NAO") + "); desativar -> " + desativa
+                        + " (sumiu da pagina: " + (sumiu ? "sim" : "NAO") + "); senha atual errada -> " + senhaErrada
+                        + "; trocar e voltar a senha -> " + trocou + "/" + voltouSenha);
+
         // ---------------------------------------------------------------
         // CT-13 Responsividade
         registrarManual("CT-13 Responsividade",
@@ -305,6 +390,28 @@ public class TestesCT {
             String obj = m.group();
             if (obj.contains("T" + hora + "\"") && !obj.contains("\"Cancelado\"")) {
                 return campo(obj, "id");
+            }
+        }
+        return "0";
+    }
+
+    /** Acha o id de um bloqueio pelo motivo. */
+    static String idDoBloqueio(String listaJson, String motivo) {
+        return idDoObjetoCom(listaJson, "\"motivo\":\"" + motivo + "\"");
+    }
+
+    /** Acha o id de um servico pelo nome. */
+    static String idDoServico(String listaJson, String nome) {
+        return idDoObjetoCom(listaJson, "\"descricao\":\"" + nome + "\"");
+    }
+
+    static String idDoObjetoCom(String listaJson, String trecho) {
+        Matcher m = Pattern.compile("\\{[^{}]*\\}").matcher(listaJson);
+        while (m.find()) {
+            String obj = m.group();
+            if (obj.contains(trecho)) {
+                Matcher id = Pattern.compile("\"id[A-Za-z]*\":(\\d+)").matcher(obj);
+                if (id.find()) return id.group(1);
             }
         }
         return "0";
