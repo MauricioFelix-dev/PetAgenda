@@ -49,4 +49,16 @@ class RegraConflitoTest {
     void ct06_ordemDosArgumentosNaoImporta() {
         assertTrue(RegraConflito.haSobreposicao(hora(11, 0), 30, hora(10, 0), 75));
     }
+
+    @Test
+    void ct07_bloqueioDaManhaImpedeAtendimentoQueEntraNele() {
+        // Bloqueio 08:00-12:00 x Banho + Tosa 11:30-12:45
+        assertTrue(RegraConflito.intervalosSobrepoem(hora(8, 0), hora(12, 0), hora(11, 30), hora(12, 45)));
+    }
+
+    @Test
+    void ct08_atendimentoLogoDepoisDoBloqueioPode() {
+        // Bloqueio 08:00-12:00 x Banho 12:00-12:30
+        assertFalse(RegraConflito.intervalosSobrepoem(hora(8, 0), hora(12, 0), hora(12, 0), hora(12, 30)));
+    }
 }

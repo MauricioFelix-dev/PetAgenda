@@ -26,8 +26,16 @@ public final class RegraConflito {
      */
     public static boolean haSobreposicao(LocalDateTime inicioA, int duracaoMinA,
                                          LocalDateTime inicioB, int duracaoMinB) {
-        LocalDateTime fimA = inicioA.plusMinutes(duracaoMinA);
-        LocalDateTime fimB = inicioB.plusMinutes(duracaoMinB);
+        return intervalosSobrepoem(inicioA, inicioA.plusMinutes(duracaoMinA),
+                inicioB, inicioB.plusMinutes(duracaoMinB));
+    }
+
+    /**
+     * Mesma regra, para intervalos dados por início e fim (usada nos bloqueios
+     * de agenda, que podem durar horas ou dias).
+     */
+    public static boolean intervalosSobrepoem(LocalDateTime inicioA, LocalDateTime fimA,
+                                              LocalDateTime inicioB, LocalDateTime fimB) {
         return inicioA.isBefore(fimB) && fimA.isAfter(inicioB);
     }
 }
