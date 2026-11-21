@@ -1,5 +1,5 @@
 // =====================================================================
-// PetAgenda - Roteiro automatico dos casos de teste CT-01 a CT-19
+// PetAgenda - Roteiro automatico dos casos de teste CT-01 a CT-21
 //
 // O QUE FAZ: conversa com o sistema JA RODANDO (http://localhost:8080)
 // do mesmo jeito que a landing page e o painel fazem, e confere se cada
@@ -283,6 +283,65 @@ public class TestesCT {
                 "criar servico -> " + criaServ + " (aparece na pagina: " + (naPagina ? "sim" : "NAO") + "); desativar -> " + desativa
                         + " (sumiu da pagina: " + (sumiu ? "sim" : "NAO") + "); senha atual errada -> " + senhaErrada
                         + "; trocar e voltar a senha -> " + trocou + "/" + voltouSenha);
+
+        // =================================================================
+        // ETAPA 3 - complemento (21/11/2026): CT-20 e CT-21
+        // =================================================================
+
+        // CT-20 SQL injection: textos com comandos SQL nao mudam a consulta.
+        // Todas as consultas usam "?" (parametros do JdbcTemplate), entao o banco
+        // recebe o texto como DADO, nunca como parte do comando.
+        HttpClient clienteLogado = cliente;
+        cliente = HttpClient.newBuilder().cookieHandler(new CookieManager()).build();   // visitante sem login
+        int sqlLogin1 = post("/api/login", "{\"login\":\"" + esc(LOGIN + "' OR '1'='1") + "\",\"senha\":\"" + esc("x' OR '1'='1") + "\"}").status;
+        int sqlLogin2 = post("/api/login", "{\"login\":\"" + esc(LOGIN + "' -- ") + "\",\"senha\":\"qualquer\"}").status;
+        int sqlPainel = get("/api/agendamentos").status;   // continua sem login?
+        int sqlMeus = post("/api/meus-agendamentos", "{\"telefone\":\"" + esc("' OR '1'='1") + "\",\"codigo\":\"" + esc("' OR '1'='1") + "\"}").status;
+        int sqlHorarios = get("/api/horarios-disponiveis?data=" + dia + "&servico=1%20OR%201%3D1").status;
+        String nomeSql = "Robert'); DROP TABLE tutor;--";
+        String obsSql = "' OR 1=1; DELETE FROM agendamento;--";
+        Resp sqlAg = agendar(nomeSql, "99912340006", "Bobby", 1, dia, "12:00", "", obsSql);
+        cliente = clienteLogado;
+        int sqlData = get("/api/agendamentos?data=" + dia + "%27%20OR%20%271%27%3D%271").status;
+        String sqlHist = get("/api/agendamentos?telefone=" + "%27%20OR%20%271%27%3D%271").corpo.trim();
+        String listaSql = get("/api/agendamentos?data=" + dia).corpo;
+        boolean gravouComoTexto = listaSql.contains(esc(nomeSql)) && listaSql.contains(esc(obsSql));
+        boolean tabelasIntactas = listaSql.contains("Ana Teste") && listaSql.contains("Rex");
+        registrar("CT-20 SQL injection",
+                sqlLogin1 == 401 && sqlLogin2 == 401 && sqlPainel == 401 && sqlMeus != 200 && sqlHorarios == 400
+                        && sqlAg.status == 200 && gravouComoTexto && tabelasIntactas && sqlData == 400 && sqlHist.equals("[]"),
+                "login admin' OR '1'='1 -> " + sqlLogin1 + "; login admin' -- -> " + sqlLogin2 + "; painel depois -> " + sqlPainel
+                        + "; Meus agendamentos com ' OR '1'='1 -> " + sqlMeus + "; servico=1 OR 1=1 -> " + sqlHorarios
+                        + "; data com ' OR '1'='1 -> " + sqlData + "; historico com ' OR '1'='1 -> " + sqlHist
+                        + "; nome com DROP TABLE -> " + sqlAg.status + " (gravado como texto: " + (gravouComoTexto ? "sim" : "NAO")
+                        + "; outros agendamentos continuam: " + (tabelasIntactas ? "sim" : "NAO") + ")"
+                        + " (esperado 401, 401, 401, 400 ou 404, 400, 400, [], 200)");
+
+        // ---------------------------------------------------------------
+        // CT-21 Agenda da semana: segunda a domingo, so com login
+        LocalDate segunda = dia.with(DayOfWeek.MONDAY);
+        Resp sem1 = get("/api/agendamentos?semana=" + dia);
+        Resp sem2 = get("/api/agendamentos?semana=" + segunda.plusDays(6));    // domingo da mesma semana
+        Matcher datas = Pattern.compile("\"dataHora\":\"(\\d{4}-\\d{2}-\\d{2})T").matcher(sem1.corpo);
+        int qtdSemana = 0;
+        boolean todasNaSemana = true;
+        while (datas.find()) {
+            qtdSemana++;
+            LocalDate d = LocalDate.parse(datas.group(1));
+            if (d.isBefore(segunda) || !d.isBefore(segunda.plusDays(7))) todasNaSemana = false;
+        }
+        int qtdDia = contar(get("/api/agendamentos?data=" + dia).corpo, "\"dataHora\":");
+        int semInvalida = get("/api/agendamentos?semana=31-02-2026").status;
+        cliente = HttpClient.newBuilder().cookieHandler(new CookieManager()).build();
+        int semSemLogin = get("/api/agendamentos?semana=" + dia).status;
+        cliente = clienteLogado;
+        registrar("CT-21 Agenda da semana",
+                sem1.status == 200 && sem1.corpo.equals(sem2.corpo) && todasNaSemana && qtdSemana >= qtdDia && qtdDia > 0
+                        && semInvalida == 400 && semSemLogin == 401,
+                "semana de " + segunda + " -> " + sem1.status + " com " + qtdSemana + " agendamento(s), todos de segunda a domingo: "
+                        + (todasNaSemana ? "sim" : "NAO") + "; inclui os " + qtdDia + " do dia " + dia + ": " + (qtdSemana >= qtdDia ? "sim" : "NAO")
+                        + "; pedir pelo domingo da mesma semana da o mesmo resultado: " + (sem1.corpo.equals(sem2.corpo) ? "sim" : "NAO")
+                        + "; data invalida -> " + semInvalida + "; sem login -> " + semSemLogin + " (esperado 400 e 401)");
 
         // ---------------------------------------------------------------
         // CT-13 Responsividade

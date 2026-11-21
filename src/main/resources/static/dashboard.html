@@ -29,7 +29,8 @@
     <div class="offcanvas-body d-flex flex-column px-3 pb-4 flex-grow-1">
       <div class="nav flex-column gap-1 w-100" role="tablist" aria-label="Seções do painel" aria-orientation="vertical">
         <div class="rotulo-menu">Atendimento</div>
-        <button class="nav-link aba" role="tab" aria-selected="true" data-painel="painelAgenda"><i class="bi bi-calendar-week" aria-hidden="true"></i> Agenda do dia</button>
+        <button class="nav-link aba" role="tab" aria-selected="true" data-painel="painelAgenda"><i class="bi bi-calendar-event" aria-hidden="true"></i> Agenda do dia</button>
+        <button class="nav-link aba" role="tab" aria-selected="false" data-painel="painelSemana"><i class="bi bi-calendar-week" aria-hidden="true"></i> Agenda da semana</button>
         <button class="nav-link aba" role="tab" aria-selected="false" data-painel="painelHistorico"><i class="bi bi-clock-history" aria-hidden="true"></i> Histórico do tutor</button>
         <div class="rotulo-menu so-admin" hidden>Administração</div>
         <button class="nav-link aba so-admin" role="tab" aria-selected="false" data-painel="painelServicos" hidden><i class="bi bi-scissors" aria-hidden="true"></i> Serviços</button>
@@ -94,6 +95,25 @@
         <div id="lista-agendamentos" class="row row-cols-1 row-cols-md-2 row-cols-xxl-3 g-3" aria-live="polite">
           <p class="vazio col-12">Carregando dados do servidor...</p>
         </div>
+      </section>
+
+      <!-- ═══════════ AGENDA DA SEMANA (RF03: visão de calendário) ═══════════ -->
+      <section id="painelSemana" class="painel" role="tabpanel" aria-label="Agenda da semana" hidden>
+        <div class="painel-cartao mb-4">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="btn-group" role="group" aria-label="Mudar a semana">
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btnSemanaAnterior" aria-label="Semana anterior"><i class="bi bi-chevron-left" aria-hidden="true"></i> Anterior</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btnSemanaAtual">Esta semana</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btnSemanaSeguinte" aria-label="Semana seguinte">Próxima <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+            </div>
+            <span class="ms-auto fw-bold text-verde" id="semanaExtenso"></span>
+          </div>
+          <p class="small text-suave mb-0 mt-3" id="resumoSemana" aria-live="polite"></p>
+        </div>
+        <div id="gradeSemana" class="semana-grade" aria-live="polite">
+          <p class="vazio">Carregando a semana...</p>
+        </div>
+        <p class="small text-suave mt-3 mb-0"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Clique em um dia ou em um atendimento para abrir a agenda daquele dia e mudar o status.</p>
       </section>
 
       <!-- ═══════════ HISTÓRICO DO TUTOR (UC04 pelo funcionário) ═══════════ -->
@@ -329,6 +349,7 @@
     // ═════════════════════════════════════════════════════════════
     const carregarAba = {
         painelAgenda: () => atualizarTela(),
+        painelSemana: () => carregarSemana(),
         painelHistorico: () => document.getElementById('telHistorico').focus(),
         painelServicos: () => carregarFuncionarios().then(carregarServicos),
         painelFuncionarios: () => carregarFuncionarios(),
@@ -466,6 +487,93 @@
 
     function atualizarTela() { carregarIndicadores(); buscarAgendamentos(); }
 
+    // ═════════════════════════════════════════════════════════════
+    // Agenda da semana (segunda a domingo, uma consulta só no servidor)
+    // ═════════════════════════════════════════════════════════════
+    let diaDaSemana = null;   // qualquer data da semana que está na tela (AAAA-MM-DD)
+
+    function segundaDe(iso) {
+        const d = new Date(iso + 'T12:00');
+        d.setDate(d.getDate() - ((d.getDay() + 6) % 7));   // getDay: 0 = domingo
+        return d;
+    }
+
+    function abrirDia(iso) {
+        filtroData.value = iso;
+        document.querySelector('.aba[data-painel="painelAgenda"]').click();
+    }
+
+    function carregarSemana() {
+        if (!diaDaSemana) diaDaSemana = filtroData.value || dataDeHoje();
+        const grade = document.getElementById('gradeSemana');
+        const segunda = segundaDe(diaDaSemana);
+        const dias = [];
+        for (let i = 0; i < 7; i++) { const d = new Date(segunda); d.setDate(d.getDate() + i); dias.push(d); }
+        const curto = { day: 'numeric', month: 'long' };
+        document.getElementById('semanaExtenso').textContent =
+            dias[0].toLocaleDateString('pt-BR', curto) + ' a ' + dias[6].toLocaleDateString('pt-BR', curto);
+
+        api('/api/agendamentos?semana=' + isoDe(segunda)).then(dados => {
+            const porDia = {};
+            dados.forEach(a => { (porDia[a.dataHora.split('T')[0]] = porDia[a.dataHora.split('T')[0]] || []).push(a); });
+            const ativos = dados.filter(a => a.status !== 'Cancelado');
+            const comAlerta = ativos.filter(a => a.restricoes).length;
+            const cancelados = dados.length - ativos.length;
+            document.getElementById('resumoSemana').textContent =
+                ativos.length + (ativos.length === 1 ? ' atendimento' : ' atendimentos') + ' na semana'
+                + (comAlerta ? ' · ' + comAlerta + ' com alerta de saúde' : '')
+                + (cancelados ? ' · ' + cancelados + (cancelados === 1 ? ' cancelado' : ' cancelados') : '');
+
+            const hoje = dataDeHoje();
+            grade.replaceChildren();
+            dias.forEach(d => {
+                const iso = isoDe(d);
+                const itens = porDia[iso] || [];
+                const qtd = itens.filter(a => a.status !== 'Cancelado').length;
+                const coluna = el('section', 'semana-dia' + (iso === hoje ? ' hoje' : ''));
+                coluna.setAttribute('aria-label', d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }));
+
+                const cab = el('button', 'semana-cab');
+                cab.type = 'button';
+                cab.title = 'Abrir a agenda deste dia';
+                const nome = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+                cab.appendChild(el('span', 'semana-nome', nome + (iso === hoje ? ' · hoje' : '')));
+                cab.appendChild(el('span', 'semana-num', String(d.getDate())));
+                cab.appendChild(el('span', 'semana-qtd', qtd === 0 ? 'livre' : qtd + ' atend.'));
+                cab.addEventListener('click', () => abrirDia(iso));
+                coluna.appendChild(cab);
+
+                const lista = el('div', 'semana-lista');
+                itens.forEach(a => {
+                    const hora = a.dataHora.split('T')[1];
+                    const b = el('button', 'semana-item st-' + a.status.split(' ')[0]);
+                    b.type = 'button';
+                    b.setAttribute('aria-label', hora + ', ' + a.pet + ', ' + a.servico + ', ' + (a.responsavel || 'Equipe')
+                        + ', ' + a.status + (a.restricoes ? ', com alerta de saúde' : '') + '. Abrir o dia.');
+                    const topo = el('span', 'd-flex justify-content-between align-items-center gap-1');
+                    topo.appendChild(el('span', 'semana-hora', hora));
+                    if (a.restricoes) topo.appendChild(icone('exclamation-triangle-fill', 'text-danger'));
+                    b.appendChild(topo);
+                    b.appendChild(el('span', 'semana-pet', a.pet + ' · ' + a.servico));
+                    b.appendChild(el('span', 'semana-resp', (a.responsavel || 'Equipe') + ' · ' + a.status));
+                    b.addEventListener('click', () => abrirDia(iso));
+                    lista.appendChild(b);
+                });
+                coluna.appendChild(lista);
+                grade.appendChild(coluna);
+            });
+        }).catch(e => {
+            grade.replaceChildren(el('p', 'vazio', 'Não foi possível carregar a semana: ' + e.message));
+        });
+    }
+
+    function mudarSemana(semanas) {
+        const d = segundaDe(diaDaSemana || dataDeHoje());
+        d.setDate(d.getDate() + 7 * semanas);
+        diaDaSemana = isoDe(d);
+        carregarSemana();
+    }
+
     function mudarDia(dias) {
         const d = new Date(filtroData.value + 'T12:00');
         d.setDate(d.getDate() + dias);
@@ -508,7 +616,7 @@
         return b;
     }
     function situacao(ativo, sim, nao) {
-        return el('span', 'badge rounded-pill ' + (ativo ? 'text-bg-success' : 'text-bg-secondary'), ativo ? sim : nao);
+        return el('span', 'badge rounded-pill ' + (ativo ? 'text-bg-success' : 'badge-inativo'), ativo ? sim : nao);
     }
 
     function carregarFuncionarios() {
@@ -725,6 +833,9 @@
         document.getElementById('btnHoje').addEventListener('click', () => { filtroData.value = dataDeHoje(); atualizarTela(); });
         document.getElementById('btnDiaAnterior').addEventListener('click', () => mudarDia(-1));
         document.getElementById('btnDiaSeguinte').addEventListener('click', () => mudarDia(1));
+        document.getElementById('btnSemanaAnterior').addEventListener('click', () => mudarSemana(-1));
+        document.getElementById('btnSemanaSeguinte').addEventListener('click', () => mudarSemana(1));
+        document.getElementById('btnSemanaAtual').addEventListener('click', () => { diaDaSemana = dataDeHoje(); carregarSemana(); });
 
         api('/api/eu').then(u => {
             eu = u;
