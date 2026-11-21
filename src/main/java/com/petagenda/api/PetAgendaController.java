@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
@@ -138,7 +139,7 @@ public class PetAgendaController {
     }
 
     @PostMapping("/login")
-    public Map<String, Object> fazerLogin(@RequestBody Map<String, String> credenciais, HttpSession sessao) {
+    public Map<String, Object> fazerLogin(@RequestBody Map<String, String> credenciais, HttpServletRequest pedido) {
         String login = AgendamentoService.limpar(credenciais.get("login"));
         String senha = credenciais.get("senha") == null ? "" : credenciais.get("senha");
 
@@ -151,6 +152,11 @@ public class PetAgendaController {
             throw new RegraNegocioException(HttpStatus.UNAUTHORIZED, "Login ou senha incorretos.");
         }
         Map<String, Object> f = encontrados.get(0);
+        // Troca o identificador da sessão ao entrar (revisão de 21/11/2026). Sem isso, quem
+        // conseguisse plantar um cookie de sessão antes do login herdaria a sessão logada
+        // ("fixação de sessão", OWASP). Os dados da sessão continuam os mesmos.
+        HttpSession sessao = pedido.getSession(true);
+        pedido.changeSessionId();
         sessao.setAttribute(ControleAcesso.SESSAO_ID, f.get("id"));
 
         Map<String, Object> usuario = new LinkedHashMap<>();
