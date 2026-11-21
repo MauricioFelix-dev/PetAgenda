@@ -7,7 +7,9 @@ e painel com login e perfis (Administrador e Atendente).
 ## Tecnologias
 - Java 17+ · Spring Boot 4 · Spring JDBC (JdbcTemplate)
 - MySQL / MariaDB (XAMPP)
-- HTML5, CSS3 e JavaScript puro (sem framework)
+- HTML5, CSS3, JavaScript e Bootstrap 5.3 (com Bootstrap Icons)
+  - Bootstrap, ícones e fontes ficam em `src/main/resources/static/vendor/`: o site funciona sem internet
+  - Tema com a paleta do PetAgenda em `static/css/petagenda.css`; funções comuns em `static/js/petagenda.js`
 - BCrypt (spring-security-crypto) para senhas
 
 ## Como rodar (Windows + XAMPP)
