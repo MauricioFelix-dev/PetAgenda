@@ -1,5 +1,6 @@
 package com.petagenda.api;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -175,11 +176,13 @@ public class PetAgendaController {
     // =====================================================================
 
     /**
-     * Agenda de um dia (?data=AAAA-MM-DD) ou histórico de um tutor (?telefone=...).
+     * Agenda de um dia (?data=AAAA-MM-DD), de uma semana (?semana=AAAA-MM-DD, de segunda
+     * a domingo da semana que contém a data) ou histórico de um tutor (?telefone=...).
      * Sem filtro, devolve tudo.
      */
     @GetMapping("/agendamentos")
     public List<Map<String, Object>> listarAgendamentos(@RequestParam(required = false) String data,
+                                                        @RequestParam(required = false) String semana,
                                                         @RequestParam(required = false) String telefone,
                                                         HttpSession sessao) {
         acesso.exigirLogin(sessao);
@@ -195,6 +198,12 @@ public class PetAgendaController {
         if (telefone != null && !telefone.isBlank()) {
             return jdbcTemplate.queryForList(sql + "WHERE t.telefone = ? ORDER BY a.dataHora DESC",
                     AgendamentoService.somenteDigitos(telefone));
+        }
+        if (semana != null && !semana.isBlank()) {
+            // Visão semanal (RF03): uma consulta só, da segunda-feira até o domingo
+            LocalDate segunda = lerData(semana).with(DayOfWeek.MONDAY);
+            return jdbcTemplate.queryForList(sql + "WHERE a.dataHora >= ? AND a.dataHora < ? ORDER BY a.dataHora",
+                    segunda.atStartOfDay(), segunda.plusDays(7).atStartOfDay());
         }
         if (data != null && !data.isBlank()) {
             LocalDate dia = lerData(data);

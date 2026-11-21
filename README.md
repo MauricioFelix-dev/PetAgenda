@@ -55,7 +55,7 @@ mvnw.cmd test -Dtest=RegraStatusTest,RegraConflitoTest,AgendamentoServiceTest
 O `AgendamentoServiceTest` prova a transação: força uma falha na última gravação e confere
 que tutor e pet não ficaram gravados.
 
-### Roteiro automático dos casos CT-01 a CT-19 (precisa do sistema ligado)
+### Roteiro automático dos casos CT-01 a CT-21 (precisa do sistema ligado)
 Com o sistema rodando em outro terminal (`mvnw.cmd spring-boot:run`), dê dois cliques em
 `testes\rodar-testes.bat` ou rode na pasta do projeto:
 ```
@@ -83,6 +83,8 @@ CT-06 e CT-12 também precisam de print do painel no navegador.
 | Painel e dados pessoais só são acessíveis com login (sessão no servidor) | rotas restritas do controller |
 | Senhas guardadas com hash BCrypt; troca de senha pelo painel | `InicializadorAdmin`, `fazerLogin`, `PUT /api/minha-senha` |
 | Indicadores: atendimentos, ocupação da agenda, faturamento, serviço mais procurado | `GET /api/indicadores` |
+| Agenda da semana (segunda a domingo) em forma de calendário, com alerta de saúde e status | `GET /api/agendamentos?semana=AAAA-MM-DD` + aba "Agenda da semana" |
+| Proteção contra SQL injection: toda consulta usa parâmetros `?` do JdbcTemplate | todo o código Java (testado no CT-20) |
 
 ## Roteiro de testes manuais (simulação)
 Registre data, resultado obtido e print de cada caso.
@@ -108,6 +110,8 @@ Registre data, resultado obtido e print de cada caso.
 | CT-17 Perfis | Entrar com ana / ana12345 | Não aparecem as abas Serviços, Funcionários e Bloqueios |
 | CT-18 Meus agendamentos | Agendar, guardar o código, abrir Meus agendamentos e cancelar | O agendamento aparece e muda para Cancelado |
 | CT-19 Serviços e senha | Aba Serviços: cadastrar e desativar um serviço; "Trocar minha senha" | O serviço aparece e some da landing; a senha muda |
+| CT-20 SQL injection | No login, digitar `admin' OR '1'='1` como login e senha; em Meus agendamentos, `' OR '1'='1` no telefone e no código; agendar com o nome `Robert'); DROP TABLE tutor;--` | Login recusado (401); Meus agendamentos não mostra nada; o nome é gravado como texto e as tabelas continuam inteiras |
+| CT-21 Agenda da semana | No painel, abrir "Agenda da semana", trocar de semana e clicar em um atendimento | Mostra segunda a domingo com os atendimentos de cada dia; o clique abre a agenda daquele dia |
 
 ## Limitações conhecidas (declarar no relatório)
 - Funciona com **um único servidor**: a proteção contra duas reservas simultâneas usa `synchronized` em memória.
@@ -115,5 +119,5 @@ Registre data, resultado obtido e print de cada caso.
 - Um agendamento tem um único serviço (o pacote "Banho + Tosa" cobre o caso comum).
 - O tutor não tem login; ele usa telefone + código do agendamento.
 - O aceite da política de privacidade não é gravado no banco.
-- Não há pagamento, notificação por WhatsApp ou calendário visual.
+- Não há pagamento nem notificação por WhatsApp. O calendário é por dia e por semana (não há visão de mês).
 - A sessão usa cookie padrão do servidor, sem HTTPS (adequado para teste local, não para produção).
