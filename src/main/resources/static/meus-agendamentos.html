@@ -2,128 +2,141 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232D5016%27/%3E%3Cg fill=%27%23F2B544%27%3E%3Cellipse cx=%2732%27 cy=%2740%27 rx=%2711%27 ry=%279.5%27/%3E%3Ccircle cx=%2718%27 cy=%2728%27 r=%275.5%27/%3E%3Ccircle cx=%2726.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2737.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2746%27 cy=%2728%27 r=%275.5%27/%3E%3C/g%3E%3C/svg%3E">
-  <title>Meus agendamentos - PetAgenda</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2D5016">
+  <title>Meus agendamentos – PetAgenda</title>
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="css/petagenda.css">
+  <script>document.documentElement.classList.add('js');</script>
   <!-- UC03 Cancelar agendamento e UC04 Visualizar histórico, pelo cliente.
        O tutor entra com o TELEFONE + o CÓDIGO que recebeu ao agendar. -->
-  <style>
-    :root {
-      --cream:#FAF6EF; --warm:#F2E8D9; --green:#2D5016; --green2:#4A7C2F;
-      --amber:#C8861A; --amber-texto:#8A5A00; --text:#2A2318; --muted:#6B5D4D; --white:#FFFFFF;
-      --shadow:0 8px 30px rgba(45,80,22,.12);
-    }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); line-height:1.6; }
-    header { padding:18px 6vw; border-bottom:1px solid rgba(45,80,22,.08); display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
-    .logo { font-family:'Playfair Display',serif; font-weight:900; font-size:1.6rem; color:var(--green); text-decoration:none; }
-    .logo span { color:var(--amber-texto); }
-    header nav a { color:var(--green); font-weight:600; text-decoration:none; margin-left:1.2rem; }
-    main { max-width:760px; margin:0 auto; padding:40px 20px 64px; }
-    h1 { font-family:'Playfair Display',serif; color:var(--green); font-size:2rem; margin:0 0 .3rem; }
-    .sub { color:var(--muted); margin:0 0 1.6rem; }
-    .caixa { background:var(--white); border-radius:20px; padding:1.6rem; box-shadow:var(--shadow); }
-    .linha { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-    label { display:flex; flex-direction:column; gap:.35rem; font-weight:600; font-size:.9rem; }
-    input { padding:.75rem 1rem; border:1px solid #8C8C8C; border-radius:10px; font-size:1rem; font-family:inherit; }
-    input#codigo { text-transform:uppercase; letter-spacing:3px; font-family:ui-monospace,Consolas,monospace; }
-    .btn { background:var(--green); color:var(--white); border:none; padding:.8rem 1.6rem; border-radius:50px; font-weight:700; font-size:1rem; cursor:pointer; font-family:inherit; margin-top:1rem; }
-    .btn:hover { background:var(--green2); }
-    .btn:disabled { opacity:.7; cursor:wait; }
-    .btn-perigo { background:#B3261E; }
-    .btn-perigo:hover { background:#8C1D18; }
-    .btn-claro { background:var(--white); color:var(--green); border:2px solid var(--green); }
-    .btn-claro:hover { background:var(--warm); }
-    button:focus-visible, input:focus-visible, a:focus-visible { outline:3px solid var(--amber); outline-offset:2px; }
-    .erro { color:#B3261E; font-weight:600; margin-top:.8rem; }
-    .ok { color:var(--green); font-weight:600; margin-top:.8rem; }
-    .lista { display:grid; gap:1rem; margin-top:1.6rem; }
-    .ag { background:var(--white); border-radius:16px; padding:1.1rem 1.3rem; box-shadow:var(--shadow); border-left:5px solid var(--amber); }
-    .ag-topo { display:flex; justify-content:space-between; gap:.8rem; align-items:flex-start; flex-wrap:wrap; }
-    .ag h2 { font-size:1.1rem; margin:0; color:var(--green); }
-    .ag p { margin:.3rem 0 0; }
-    .ag .meta { color:var(--muted); font-size:.92rem; }
-    .badge { padding:.2rem .7rem; border-radius:20px; font-size:.78rem; font-weight:700; text-transform:uppercase; white-space:nowrap; }
-    .st-Pendente { background:#FFF3CD; color:#856404; }
-    .st-Confirmado { background:#E3F1DA; color:#2D5016; }
-    .st-Em { background:#DCEBFF; color:#0B4AA2; }
-    .st-Concluído { background:#D4EDDA; color:#155724; }
-    .st-Cancelado { background:#F8D7DA; color:#721C24; }
-    .ag .btn { margin-top:.8rem; padding:.5rem 1.1rem; font-size:.9rem; }
-    dialog { border:none; border-radius:18px; padding:1.6rem; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,.3); }
-    dialog::backdrop { background:rgba(42,35,24,.5); }
-    dialog h2 { font-family:'Playfair Display',serif; color:var(--green); margin-top:0; }
-    .acoes-dialogo { display:flex; gap:.6rem; flex-wrap:wrap; justify-content:flex-end; }
-    @media (max-width:600px) { .linha { grid-template-columns:1fr; } header nav a { margin-left:0; margin-right:1rem; } }
-    @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
-  </style>
 </head>
 <body>
-<header>
-  <a class="logo" href="/">Pet<span>Agenda</span></a>
-  <nav aria-label="Menu"><a href="/#agendamento">Agendar</a><a href="/">Página inicial</a></nav>
+<a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+<nav class="navbar navbar-expand-lg navbar-pa sticky-top" aria-label="Menu principal">
+  <div class="container">
+    <a class="marca" href="/">
+      <span class="marca-icone" aria-hidden="true"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></span>
+      <span class="marca-texto">Pet<span>Agenda</span></span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuLinks" aria-controls="menuLinks" aria-expanded="false" aria-label="Abrir menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menuLinks">
+      <ul class="navbar-nav mx-auto my-3 my-lg-0 gap-lg-1">
+        <li class="nav-item"><a class="nav-link" href="/">Página inicial</a></li>
+        <li class="nav-item"><a class="nav-link" href="/#servicos">Serviços</a></li>
+        <li class="nav-item"><a class="nav-link active" aria-current="page" href="meus-agendamentos.html">Meus agendamentos</a></li>
+      </ul>
+      <div class="pb-3 pb-lg-0"><a href="/#agendamento" class="btn btn-primary"><i class="bi bi-calendar-plus me-1" aria-hidden="true"></i> Agendar</a></div>
+    </div>
+  </div>
+</nav>
+
+<header class="faixa-titulo">
+  <svg class="pata-fundo" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg>
+  <div class="container position-relative">
+    <nav aria-label="Você está em">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Início</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Meus agendamentos</li>
+      </ol>
+    </nav>
+    <h1>Meus agendamentos</h1>
+    <p>Consulte e cancele seus horários com o telefone e o código da confirmação.</p>
+  </div>
 </header>
 
-<main>
-  <h1>Meus agendamentos</h1>
-  <p class="sub">Informe o telefone usado no agendamento e o código que apareceu na confirmação.</p>
-
-  <form class="caixa" id="formBusca">
-    <div class="linha">
-      <label for="telefone">Telefone (com DDD)
-        <input type="tel" id="telefone" inputmode="tel" autocomplete="tel" placeholder="(99) 98888-7777" required>
-      </label>
-      <label for="codigo">Código do agendamento
-        <input type="text" id="codigo" maxlength="8" autocomplete="off" placeholder="Ex: K7P2QM" required>
-      </label>
+<main id="conteudo" class="container pb-5">
+  <div class="row g-4 sobe">
+    <div class="col-lg-5">
+      <form class="form-caixa" id="formBusca">
+        <h2 class="h4 mb-1">Entrar</h2>
+        <p class="text-suave small mb-4">Informe o telefone usado no agendamento e o código que apareceu na confirmação.</p>
+        <div class="mb-3">
+          <label class="form-label" for="telefone">Telefone (com DDD)</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-telephone" aria-hidden="true"></i></span>
+            <input type="tel" class="form-control" id="telefone" inputmode="tel" autocomplete="tel" placeholder="(99) 98888-7777" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="codigo">Código do agendamento</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-key" aria-hidden="true"></i></span>
+            <input type="text" class="form-control text-uppercase font-monospace fw-bold" style="letter-spacing:3px" id="codigo" maxlength="8" autocomplete="off" placeholder="Ex: K7P2QM" required>
+          </div>
+        </div>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary" id="btnBuscar">Ver meus agendamentos</button>
+        </div>
+        <div id="mensagem" role="alert"></div>
+      </form>
     </div>
-    <button type="submit" class="btn" id="btnBuscar">Ver meus agendamentos</button>
-    <div id="mensagem" role="alert"></div>
-  </form>
 
-  <section aria-live="polite">
-    <h2 id="tituloLista" style="font-family:'Playfair Display',serif;color:var(--green);margin-top:2rem;" hidden></h2>
-    <div class="lista" id="lista"></div>
-  </section>
+    <div class="col-lg-7">
+      <section aria-live="polite" class="painel-cartao h-100" id="areaLista">
+        <h2 id="tituloLista" class="h4" hidden></h2>
+        <div id="listaVazia" class="vazio">
+          <i class="bi bi-calendar-heart" aria-hidden="true"></i>
+          <p class="mb-1 fw-bold text-verde">Seus agendamentos aparecem aqui</p>
+          <p class="small mb-0">Não tem um código? <a href="/#agendamento">Faça um agendamento</a> e ele aparece na confirmação.</p>
+        </div>
+        <div class="d-grid gap-3" id="lista"></div>
+      </section>
+    </div>
+  </div>
 </main>
 
-<dialog id="dialogoCancelar" aria-labelledby="tituloDialogo">
-  <h2 id="tituloDialogo">Cancelar agendamento?</h2>
-  <p id="textoDialogo"></p>
-  <p style="color:#6B5D4D;font-size:.9rem;">O horário fica livre para outra pessoa. Para remarcar, faça um novo agendamento.</p>
-  <div class="acoes-dialogo">
-    <button type="button" class="btn btn-claro" id="btnManter">Manter agendamento</button>
-    <button type="button" class="btn btn-perigo" id="btnConfirmarCancelar">Sim, cancelar</button>
+<footer class="rodape">
+  <div class="container rodape-base py-3 d-flex flex-wrap justify-content-between gap-2">
+    <span>© <span data-ano>2026</span> PetAgenda · Timbiras – MA · Protótipo acadêmico (TCC)</span>
+    <span><a href="privacidade.html">Aviso de privacidade</a></span>
   </div>
-</dialog>
+</footer>
 
+<!-- Confirmação de cancelamento (modal do Bootstrap) -->
+<div class="modal fade" id="dialogoCancelar" tabindex="-1" aria-labelledby="tituloDialogo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h4" id="tituloDialogo"><i class="bi bi-exclamation-triangle text-danger me-2" aria-hidden="true"></i>Cancelar agendamento?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <p id="textoDialogo" class="fw-bold"></p>
+        <p class="text-suave small mb-0">O horário fica livre para outra pessoa. Para remarcar, faça um novo agendamento.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" id="btnManter" data-bs-dismiss="modal">Manter agendamento</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmarCancelar">Sim, cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="js/petagenda.js"></script>
 <script>
   let acesso = null;          // { telefone, codigo } usados para entrar
   let codigoParaCancelar = null;
   const msg = document.getElementById('mensagem');
+  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('dialogoCancelar'));
 
   function mostrar(texto, ehErro) {
-    msg.className = ehErro ? 'erro' : 'ok';
+    msg.className = 'alert mt-3 mb-0 ' + (ehErro ? 'alert-danger erro' : 'alert-success ok');
     msg.textContent = texto;
   }
-
-  function dataBR(iso) {          // "2026-11-20T14:30" -> "20/11/2026 às 14:30"
-    const [d, h] = iso.split('T');
-    return d.split('-').reverse().join('/') + ' às ' + h;
-  }
-
-  function el(tag, classe, texto) {
-    const e = document.createElement(tag);
-    if (classe) e.className = classe;
-    if (texto !== undefined && texto !== null) e.textContent = texto;  // textContent: proteção contra XSS
-    return e;
-  }
+  function limparMensagem() { msg.className = ''; msg.textContent = ''; }
 
   function buscar() {
     const btn = document.getElementById('btnBuscar');
     btn.disabled = true;
-    btn.textContent = 'Buscando...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Buscando...';
     return fetch('/api/meus-agendamentos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -134,10 +147,11 @@
       if (!ok) {
         document.getElementById('lista').replaceChildren();
         document.getElementById('tituloLista').hidden = true;
+        document.getElementById('listaVazia').hidden = false;
         mostrar(corpo.erro || 'Não foi possível buscar agora.', true);
         return;
       }
-      if (msg.className === 'erro') msg.textContent = '';
+      if (msg.classList.contains('erro')) limparMensagem();
       desenhar(corpo);
     })
     .catch(() => mostrar('Não foi possível falar com o servidor. Tente de novo em instantes.', true))
@@ -148,19 +162,25 @@
     const titulo = document.getElementById('tituloLista');
     titulo.hidden = false;
     titulo.textContent = 'Olá, ' + corpo.tutor + '! Seus agendamentos:';
+    document.getElementById('listaVazia').hidden = true;
     const lista = document.getElementById('lista');
     lista.replaceChildren();
     corpo.agendamentos.forEach(a => {
-      const card = el('article', 'ag');
-      const topo = el('div', 'ag-topo');
-      topo.appendChild(el('h2', null, a.servico + ' · ' + a.pet));
-      topo.appendChild(el('span', 'badge st-' + a.status.split(' ')[0], a.status));
+      const card = el('article', 'agenda-card st-' + a.status.split(' ')[0]);
+      const topo = el('div', 'd-flex justify-content-between gap-2 align-items-start flex-wrap');
+      topo.appendChild(el('h3', 'h6 mb-0 fw-bold', a.servico + ' · ' + a.pet));
+      topo.appendChild(el('span', 'status status-' + a.status.split(' ')[0], a.status));
       card.appendChild(topo);
-      card.appendChild(el('p', null, dataBR(a.dataHora) + ' (' + a.duracaoMinutos + ' min)'));
-      card.appendChild(el('p', 'meta', (a.responsavel ? 'Atendimento com ' + a.responsavel + ' · ' : '') + 'Código ' + a.codigo));
+      const quando = el('p', 'mb-0 mt-2');
+      quando.append(icone('calendar-event', 'me-2 text-ambar'), dataHoraBR(a.dataHora) + ' (' + a.duracaoMinutos + ' min)');
+      card.appendChild(quando);
+      const meta = el('p', 'mb-0 mt-1 small text-suave');
+      meta.append(icone('person-check', 'me-2'), (a.responsavel ? 'Atendimento com ' + a.responsavel + ' · ' : '') + 'Código ' + a.codigo);
+      card.appendChild(meta);
       if (a.podeCancelar) {
-        const b = el('button', 'btn btn-perigo', 'Cancelar este agendamento');
+        const b = el('button', 'btn btn-outline-danger btn-sm align-self-start mt-3');
         b.type = 'button';
+        b.append(icone('x-circle', 'me-1'), 'Cancelar este agendamento');
         b.addEventListener('click', () => abrirCancelamento(a));
         card.appendChild(b);
       }
@@ -171,14 +191,11 @@
   function abrirCancelamento(a) {
     codigoParaCancelar = a.codigo;
     document.getElementById('textoDialogo').textContent =
-      a.servico + ' para ' + a.pet + ' em ' + dataBR(a.dataHora) + '.';
-    document.getElementById('dialogoCancelar').showModal();
+      a.servico + ' para ' + a.pet + ' em ' + dataHoraBR(a.dataHora) + '.';
+    modal.show();
   }
 
-  document.getElementById('btnManter').addEventListener('click', () => document.getElementById('dialogoCancelar').close());
-
   document.getElementById('btnConfirmarCancelar').addEventListener('click', () => {
-    const dialogo = document.getElementById('dialogoCancelar');
     const btn = document.getElementById('btnConfirmarCancelar');
     btn.disabled = true;
     fetch('/api/meus-agendamentos/cancelar', {
@@ -188,17 +205,17 @@
     })
     .then(r => r.json().then(corpo => ({ ok: r.ok, corpo })))
     .then(({ ok, corpo }) => {
-      dialogo.close();
+      modal.hide();
       mostrar(ok ? corpo.mensagem : (corpo.erro || 'Não foi possível cancelar.'), !ok);
       return buscar();
     })
-    .catch(() => { dialogo.close(); mostrar('Não foi possível falar com o servidor.', true); })
+    .catch(() => { modal.hide(); mostrar('Não foi possível falar com o servidor.', true); })
     .finally(() => { btn.disabled = false; });
   });
 
   document.getElementById('formBusca').addEventListener('submit', e => {
     e.preventDefault();
-    msg.textContent = '';
+    limparMensagem();
     acesso = {
       telefone: document.getElementById('telefone').value,
       codigo: document.getElementById('codigo').value.trim().toUpperCase()

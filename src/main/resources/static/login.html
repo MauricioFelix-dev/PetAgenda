@@ -1,188 +1,135 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232D5016%27/%3E%3Cg fill=%27%23F2B544%27%3E%3Cellipse cx=%2732%27 cy=%2740%27 rx=%2711%27 ry=%279.5%27/%3E%3Ccircle cx=%2718%27 cy=%2728%27 r=%275.5%27/%3E%3Ccircle cx=%2726.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2737.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2746%27 cy=%2728%27 r=%275.5%27/%3E%3C/g%3E%3C/svg%3E">
-    <title>Login - PetAgenda</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --cream:   #FAF6EF;
-            --green:   #2D5016;
-            --amber:   #C8861A;
-            --white:   #FFFFFF;
-            --text:    #2A2318;
-            --shadow:  0 8px 30px rgba(45,80,22,0.15);
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background:
-                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(74,124,47,.14) 0%, transparent 70%),
-                radial-gradient(ellipse 50% 50% at 15% 85%, rgba(200,134,26,.12) 0%, transparent 70%),
-                var(--cream);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        }
-
-        .login-box {
-            background: var(--white);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--green);
-            margin: 0 0 8px;
-        }
-        .logo span { color: var(--amber); }
-
-        .subtitulo {
-            color: #7A6A58;
-            font-size: 0.95rem;
-            margin: 0 0 30px;
-        }
-
-        .form-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #8C8C8C; /* #ddd tinha só 1,36:1; este tem 3,36:1 (WCAG 1.4.11) */
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'DM Sans', sans-serif;
-            outline: none;
-            transition: border-color 0.3s;
-            box-sizing: border-box;
-        }
-
-        input:focus { border-color: var(--green); }
-        input:focus-visible, .btn-login:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
-        .btn-login:disabled { opacity: .7; cursor: wait; }
-
-        .btn-login {
-            width: 100%;
-            background-color: var(--green);
-            color: var(--white);
-            border: none;
-            padding: 14px;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 700;
-            font-family: inherit;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-
-        .btn-login:hover { background-color: #4A7C2F; }
-
-        .mensagem-erro {
-            color: #dc3545;
-            font-size: 0.85rem;
-            margin-top: 15px;
-            display: none;
-            font-weight: 500;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2D5016">
+  <title>Login da equipe – PetAgenda</title>
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="css/petagenda.css">
 </head>
 <body>
+<div class="container-fluid">
+  <div class="row min-vh-100">
+    <!-- Lado verde: só aparece em telas grandes -->
+    <aside class="col-lg-6 login-lado d-none d-lg-flex flex-column justify-content-between p-5">
+      <svg class="pata-fundo" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg>
+      <a class="marca marca-clara" href="/">
+        <span class="marca-icone" style="background:var(--pa-ambar2)" aria-hidden="true"><svg viewBox="0 0 64 64" style="fill:#1F3A0F"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></span>
+        <span class="marca-texto">Pet<span>Agenda</span></span>
+      </a>
+      <div class="position-relative" style="max-width:480px">
+        <span class="rotulo-secao"><i class="bi bi-briefcase" aria-hidden="true"></i> Painel da equipe</span>
+        <h2 class="display-6 fw-bold mb-4">O dia do pet shop organizado em uma tela</h2>
+        <ul class="lista-check">
+          <li><i class="bi bi-check-circle-fill" style="color:var(--pa-ambar-claro)" aria-hidden="true"></i> Agenda do dia com status de cada atendimento</li>
+          <li><i class="bi bi-check-circle-fill" style="color:var(--pa-ambar-claro)" aria-hidden="true"></i> Alertas de saúde do pet em destaque</li>
+          <li><i class="bi bi-check-circle-fill" style="color:var(--pa-ambar-claro)" aria-hidden="true"></i> Indicadores de ocupação e faturamento</li>
+          <li><i class="bi bi-check-circle-fill" style="color:var(--pa-ambar-claro)" aria-hidden="true"></i> Serviços, equipe e bloqueios de horário</li>
+        </ul>
+      </div>
+      <p class="small mb-0" style="color:rgba(255,255,255,.7)">Protótipo acadêmico (TCC) · Timbiras – MA</p>
+    </aside>
 
-    <main class="login-box">
-        <h1 class="logo">Pet<span>Agenda</span></h1>
-        <p class="subtitulo">Acesso restrito para funcionários</p>
-
-        <form id="formLogin">
-            <div class="form-group">
-                <label for="login">Login de usuário</label>
-                <input type="text" id="login" autocomplete="username" placeholder="Ex: admin" required>
+    <main class="col-lg-6 login-form-area d-flex align-items-center justify-content-center p-4">
+      <div class="login-caixa">
+        <a class="marca d-lg-none mb-4" href="/">
+          <span class="marca-icone" aria-hidden="true"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></span>
+          <span class="marca-texto">Pet<span>Agenda</span></span>
+        </a>
+        <div class="form-caixa">
+          <span class="icone-redondo verde" aria-hidden="true"><i class="bi bi-lock"></i></span>
+          <h1 class="h3 mb-1">Acesso da equipe</h1>
+          <p class="text-suave mb-4">Área restrita para funcionários do pet shop.</p>
+          <form id="formLogin" novalidate>
+            <div class="mb-3">
+              <label class="form-label" for="login">Login de usuário</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-person" aria-hidden="true"></i></span>
+                <input type="text" class="form-control" id="login" autocomplete="username" placeholder="Ex: admin" required>
+              </div>
             </div>
-            
-            <div class="form-group">
-                <label for="senha">Senha</label>
-                <input type="password" id="senha" autocomplete="current-password" required>
+            <div class="mb-4">
+              <label class="form-label" for="senha">Senha</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-key" aria-hidden="true"></i></span>
+                <input type="password" class="form-control" id="senha" autocomplete="current-password" required>
+                <button type="button" class="btn btn-outline-secondary border-start-0" id="btnVerSenha" style="border-radius:0 .8rem .8rem 0;border-color:#8C8C8C;color:var(--pa-suave);transform:none" aria-label="Mostrar senha" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button>
+              </div>
             </div>
-
-            <button type="submit" class="btn-login" id="btnEntrar">Entrar no sistema</button>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg" id="btnEntrar">Entrar no sistema</button>
+            </div>
             <!-- role="alert": o leitor de tela anuncia o erro assim que ele aparece -->
-            <div id="mensagemErro" class="mensagem-erro" role="alert"></div>
-        </form>
-        <p style="margin-top:24px;font-size:.9rem;"><a href="/" style="color:var(--green);font-weight:600;">← Voltar para a página inicial</a></p>
+            <div id="mensagemErro" class="alert alert-danger mt-3 mb-0 mensagem-erro" role="alert" hidden></div>
+          </form>
+        </div>
+        <p class="text-center mt-4 mb-0"><a href="/" class="fw-bold text-decoration-none"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Voltar para a página inicial</a></p>
+      </div>
     </main>
+  </div>
+</div>
 
-    <script>
-        document.getElementById('formLogin').addEventListener('submit', function(e) {
-            e.preventDefault();
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script>
+  // Mostrar/ocultar a senha (ajuda quem digita no celular)
+  document.getElementById('btnVerSenha').addEventListener('click', function () {
+    const campo = document.getElementById('senha');
+    const mostrar = campo.type === 'password';
+    campo.type = mostrar ? 'text' : 'password';
+    this.setAttribute('aria-pressed', String(mostrar));
+    this.setAttribute('aria-label', mostrar ? 'Ocultar senha' : 'Mostrar senha');
+    this.firstElementChild.className = 'bi ' + (mostrar ? 'bi-eye-slash' : 'bi-eye');
+  });
 
-            const loginDigitado = document.getElementById('login').value;
-            const senhaDigitada = document.getElementById('senha').value;
-            const msgErro = document.getElementById('mensagemErro');
-            const btn = document.getElementById('btnEntrar');
+  document.getElementById('formLogin').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const loginDigitado = document.getElementById('login').value;
+    const senhaDigitada = document.getElementById('senha').value;
+    const msgErro = document.getElementById('mensagemErro');
+    const btn = document.getElementById('btnEntrar');
 
-            // Limpa o erro anterior e mostra que está processando (heurística H1)
-            msgErro.style.display = 'none';
-            msgErro.textContent = '';
-            btn.disabled = true;
-            btn.textContent = 'Entrando...';
+    function mostrarErro(texto) {
+      msgErro.textContent = texto;
+      msgErro.hidden = false;
+    }
+    if (!loginDigitado || !senhaDigitada) { mostrarErro('Preencha o login e a senha.'); return; }
 
-            function mostrarErro(texto) {
-                msgErro.textContent = texto;
-                msgErro.style.display = 'block';
-            }
+    // Limpa o erro anterior e mostra que está processando (heurística H1)
+    msgErro.hidden = true;
+    msgErro.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Entrando...';
 
-            fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ login: loginDigitado, senha: senhaDigitada })
-            })
-            .then(resposta => {
-                if (resposta.ok) {
-                    return resposta.json().then(dadosUsuario => {
-                        // O controle de acesso real é a sessão no servidor; aqui guardamos só o nome para exibir
-                        sessionStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
-                        window.location.href = 'dashboard.html';
-                    });
-                }
-                // Mensagens diferentes para causas diferentes (heurística H9 de Nielsen)
-                if (resposta.status === 401) {
-                    mostrarErro('Login ou senha incorretos. Confira e tente de novo.');
-                } else {
-                    mostrarErro('O servidor teve um problema (erro ' + resposta.status + '). Tente novamente em instantes.');
-                }
-            })
-            .catch(() => {
-                mostrarErro('Não foi possível falar com o servidor. Verifique se o sistema está ligado.');
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.textContent = 'Entrar no sistema';
-            });
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: loginDigitado, senha: senhaDigitada })
+    })
+    .then(resposta => {
+      if (resposta.ok) {
+        return resposta.json().then(dadosUsuario => {
+          // O controle de acesso real é a sessão no servidor; aqui guardamos só o nome para exibir
+          sessionStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
+          window.location.href = 'dashboard.html';
         });
-    </script>
+      }
+      // Mensagens diferentes para causas diferentes (heurística H9 de Nielsen)
+      if (resposta.status === 401) {
+        mostrarErro('Login ou senha incorretos. Confira e tente de novo.');
+      } else {
+        mostrarErro('O servidor teve um problema (erro ' + resposta.status + '). Tente novamente em instantes.');
+      }
+    })
+    .catch(() => mostrarErro('Não foi possível falar com o servidor. Verifique se o sistema está ligado.'))
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = 'Entrar no sistema';
+    });
+  });
+</script>
 </body>
 </html>

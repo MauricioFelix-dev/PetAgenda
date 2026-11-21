@@ -1,796 +1,742 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232D5016%27/%3E%3Cg fill=%27%23F2B544%27%3E%3Cellipse cx=%2732%27 cy=%2740%27 rx=%2711%27 ry=%279.5%27/%3E%3Ccircle cx=%2718%27 cy=%2728%27 r=%275.5%27/%3E%3Ccircle cx=%2726.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2737.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2746%27 cy=%2728%27 r=%275.5%27/%3E%3C/g%3E%3C/svg%3E">
-    <title>Painel Administrativo - PetAgenda</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        /* ── RESET & VARIÁVEIS ── */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --cream:   #FAF6EF;
-            --warm:    #F2E8D9;
-            --green:   #2D5016;
-            --green2:  #4A7C2F;
-            --amber:   #C8861A;
-            --white:   #FFFFFF;
-            --text:    #2A2318;
-            --muted:   #6B5D4D;
-            --shadow:  0 4px 12px rgba(0,0,0,0.05);
-            --radius:  12px;
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background-color: var(--cream);
-            color: var(--text);
-            padding-bottom: 40px;
-        }
-        button, input, select, textarea { font-family: inherit; }
-
-        /* ── CABEÇALHO ── */
-        header {
-            background-color: var(--green);
-            color: var(--white);
-            padding: 18px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
-        }
-        header h1 { font-size: 1.4rem; }
-        .header-direita { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .nome-usuario { font-weight: 600; font-size: 0.95rem; color: #F2B860; } /* 5,20:1 sobre o verde */
-        .btn-voltar {
-            color: var(--white); background: transparent; font-size: 0.9rem;
-            border: 1px solid rgba(255,255,255,0.5); padding: 8px 14px; border-radius: 8px; cursor: pointer;
-        }
-        .btn-voltar:hover { background-color: rgba(255,255,255,0.1); }
-
-        /* ── ABAS ── */
-        .abas { background: var(--white); border-bottom: 1px solid #e5ded2; padding: 0 12px; margin: 0 0 24px; border-radius: 12px 12px 0 0; display: flex; gap: 4px; overflow-x: auto; }
-        .aba {
-            background: none; border: none; border-bottom: 3px solid transparent; padding: 14px 16px;
-            font-size: .95rem; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap;
-        }
-        .aba[aria-selected="true"] { color: var(--green); border-bottom-color: var(--amber); }
-        .aba:hover { color: var(--green); }
-        .so-admin[hidden] { display: none; }
-
-        .container { max-width: 1200px; margin: 32px auto; padding: 0 20px; }
-        .painel[hidden] { display: none; }
-        .secao-titulo { margin-bottom: 20px; font-size: 1.6rem; color: var(--green); }
-        .ajuda { color: var(--muted); margin: -10px 0 20px; font-size: .95rem; }
-        .grid-agendamentos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-
-        /* Mensagem geral (erros e confirmações) */
-        .aviso { margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; font-weight: 600; }
-        .aviso:empty { display: none; }
-        .aviso.erro { background: #FDECEA; color: #8A1C1C; }
-        .aviso.ok { background: #E3F1DA; color: #1E4D0F; }
-
-        /* ── CARDS DA AGENDA ── */
-        .card {
-            background: var(--white); border-radius: var(--radius); padding: 22px;
-            box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
-            border-top: 4px solid var(--amber);
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .tutor-nome { font-size: 1.15rem; font-weight: 600; color: var(--green); }
-        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
-        .status-Pendente { background-color: #FFF3CD; color: #856404; }
-        .status-Confirmado { background-color: #E3F1DA; color: #1E4D0F; }
-        .status-Em { background-color: #DCEBFF; color: #0B4AA2; }
-        .status-Concluído { background-color: #D4EDDA; color: #155724; }
-        .status-Cancelado { background-color: #F8D7DA; color: #721C24; }
-        .info-linha { font-size: 0.95rem; }
-        .info-linha strong { color: var(--muted); }
-        .obs-box { background-color: #F8F9FA; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; color: var(--muted); font-style: italic; }
-        .vazio { text-align: center; color: var(--muted); padding: 40px; font-size: 1.1rem; grid-column: 1 / -1; background: var(--white); border: 2px dashed #e5ded2; border-radius: var(--radius); }
-        .vazio small { display: block; font-size: .9rem; margin-top: .3rem; }
-        .alerta-saude { background-color: #FDECEA; color: #8A1C1C; border-left: 4px solid #dc3545; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; }
-
-        .card-acoes { display: flex; gap: 8px; margin-top: 6px; border-top: 1px solid #eee; padding-top: 14px; flex-wrap: wrap; }
-        .btn-acao { flex: 1; min-width: 90px; padding: 9px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; color: var(--white); }
-        button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
-        .btn-confirmar { background-color: var(--green2); }   /* 4,98:1 */
-        .btn-confirmar:hover { background-color: var(--green); }
-        .btn-iniciar { background-color: #1f6feb; }           /* 4,63:1 */
-        .btn-iniciar:hover { background-color: #1a5fd0; }
-        .btn-concluir { background-color: #1E7E34; }          /* 5,14:1 */
-        .btn-concluir:hover { background-color: #19692C; }
-        .btn-cancelar { background-color: #B3261E; }          /* 6,54:1 */
-        .btn-cancelar:hover { background-color: #8C1D18; }
-
-        .barra-filtro { display: flex; gap: 10px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
-        .barra-filtro input { padding: 8px 12px; border: 1px solid #8C8C8C; border-radius: 8px; font-size: 1rem; }
-        .btn-sec { padding: 8px 14px; border: 1px solid var(--green); background: var(--white); color: var(--green); border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .btn-sec:hover { background: var(--warm); }
-        .btn-pri { padding: 10px 18px; border: none; background: var(--green); color: var(--white); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: .95rem; }
-        .btn-pri:hover { background: var(--green2); }
-        .btn-pri:disabled { opacity: .7; cursor: wait; }
-        .btn-perigo { background: #B3261E; }
-        .btn-perigo:hover { background: #8C1D18; }
-
-        .indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 32px; }
-        .indicador { background: var(--white); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
-        .indicador .valor { font-size: 1.5rem; font-weight: 600; color: var(--green); }
-        .indicador .rotulo { font-size: 0.85rem; color: var(--muted); }
-        .indicador.texto { grid-column: span 2; }
-        .indicador.texto .valor { font-size: 1.15rem; line-height: 1.3; }
-        @media (max-width: 420px) { .indicador.texto { grid-column: auto; } }
-
-        /* ── TABELAS E FORMULÁRIOS DO ADMINISTRADOR ── */
-        .duas-colunas { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
-        .bloco { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-        .bloco h3 { color: var(--green); margin-bottom: 14px; font-size: 1.1rem; }
-        table { width: 100%; border-collapse: collapse; font-size: .92rem; }
-        th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
-        th { color: var(--muted); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .3px; }
-        tr.inativo td { color: #8a8178; }
-        .tabela-rolagem { overflow-x: auto; }
-        .form-admin { display: grid; gap: 12px; }
-        .form-admin label { display: flex; flex-direction: column; gap: 5px; font-size: .88rem; font-weight: 600; }
-        .form-admin input, .form-admin select, .form-admin textarea { padding: 9px 11px; border: 1px solid #8C8C8C; border-radius: 8px; font-size: .95rem; font-weight: 400; }
-        .form-admin .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-admin label.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
-        .form-admin label.check input { width: 18px; height: 18px; }
-        .form-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
-
-        dialog { border: none; border-radius: 16px; padding: 24px; max-width: 440px; width: calc(100% - 32px); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-        dialog::backdrop { background: rgba(42,35,24,.5); }
-        dialog h2 { color: var(--green); margin-bottom: 10px; font-size: 1.25rem; }
-        dialog p { margin-bottom: 14px; }
-
-        @media (max-width: 900px) { .duas-colunas { grid-template-columns: 1fr; } }
-        @media (max-width: 600px) {
-            header { padding: 14px 16px; } header h1 { font-size: 1.15rem; }
-            .abas { padding: 0 8px; }
-            .form-admin .linha { grid-template-columns: 1fr; }
-            /* No celular, a agenda (tarefa principal) vem antes dos indicadores */
-            #painelAgenda { display: flex; flex-direction: column; }
-            #painelAgenda[hidden] { display: none; }
-            #blocoIndicadores { order: 2; }
-        }
-        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1F3A0F">
+  <title>Painel da equipe – PetAgenda</title>
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="css/petagenda.css">
 </head>
-<body>
+<body class="painel-corpo">
+<a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
 
-    <header>
-        <h1><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true" style="fill:#F2B544;vertical-align:-4px"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg> PetAgenda | Painel</h1>
-        <div class="header-direita">
-            <span id="displayNome" class="nome-usuario"></span>
-            <button type="button" id="btnMinhaSenha" class="btn-voltar">Trocar minha senha</button>
-            <button type="button" id="btnSair" class="btn-voltar">Sair</button>
-        </div>
+<div class="d-lg-flex painel-wrap">
+  <!-- ═══════════ MENU LATERAL (offcanvas do Bootstrap no celular) ═══════════
+       As abas marcadas "so-admin" só aparecem para o perfil Administrador;
+       a proteção de verdade está no servidor (responde 403 para atendente). -->
+  <aside class="painel-lateral offcanvas-lg offcanvas-start" tabindex="-1" id="menuPainel" aria-labelledby="menuPainelTitulo">
+    <div class="offcanvas-header d-lg-flex px-4 pt-4 pb-2">
+      <a class="marca marca-clara" href="/" id="menuPainelTitulo" style="font-size:1.35rem">
+        <span class="marca-icone" style="background:var(--pa-ambar2)" aria-hidden="true"><svg viewBox="0 0 64 64" style="fill:#1F3A0F"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></span>
+        <span class="marca-texto">Pet<span>Agenda</span></span>
+      </a>
+      <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#menuPainel" aria-label="Fechar menu"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column px-3 pb-4 flex-grow-1">
+      <div class="nav flex-column gap-1 w-100" role="tablist" aria-label="Seções do painel" aria-orientation="vertical">
+        <div class="rotulo-menu">Atendimento</div>
+        <button class="nav-link aba" role="tab" aria-selected="true" data-painel="painelAgenda"><i class="bi bi-calendar-week" aria-hidden="true"></i> Agenda do dia</button>
+        <button class="nav-link aba" role="tab" aria-selected="false" data-painel="painelHistorico"><i class="bi bi-clock-history" aria-hidden="true"></i> Histórico do tutor</button>
+        <div class="rotulo-menu so-admin" hidden>Administração</div>
+        <button class="nav-link aba so-admin" role="tab" aria-selected="false" data-painel="painelServicos" hidden><i class="bi bi-scissors" aria-hidden="true"></i> Serviços</button>
+        <button class="nav-link aba so-admin" role="tab" aria-selected="false" data-painel="painelFuncionarios" hidden><i class="bi bi-people" aria-hidden="true"></i> Funcionários</button>
+        <button class="nav-link aba so-admin" role="tab" aria-selected="false" data-painel="painelBloqueios" hidden><i class="bi bi-calendar-x" aria-hidden="true"></i> Bloqueios</button>
+      </div>
+      <div class="mt-auto pt-4 w-100">
+        <a href="/" class="nav-link" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Ver a página pública</a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="flex-grow-1 min-w-0" style="min-width:0">
+    <!-- ═══════════ TOPO ═══════════ -->
+    <header class="painel-topo px-3 px-md-4 py-3 d-flex align-items-center gap-3">
+      <button class="btn btn-outline-primary btn-redondo d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuPainel" aria-controls="menuPainel" aria-label="Abrir menu"><i class="bi bi-list" aria-hidden="true"></i></button>
+      <div class="me-auto">
+        <h1 class="h4 mb-0" id="tituloPainel">Agenda do dia</h1>
+        <div class="small text-suave d-none d-sm-block">Painel da equipe</div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-light d-flex align-items-center gap-2 px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="transform:none">
+          <span class="avatar" id="avatarInicial" aria-hidden="true">?</span>
+          <span class="text-start d-none d-md-block lh-sm">
+            <span id="displayNome" class="nome-usuario d-block fw-bold small"></span>
+            <span id="displayPerfil" class="d-block small text-suave"></span>
+          </span>
+          <i class="bi bi-chevron-down small" aria-hidden="true"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2">
+          <li><button type="button" class="dropdown-item rounded-3" id="btnMinhaSenha"><i class="bi bi-key me-2" aria-hidden="true"></i>Trocar minha senha</button></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><button type="button" class="dropdown-item rounded-3 text-danger" id="btnSair"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Sair</button></li>
+        </ul>
+      </div>
     </header>
 
+    <main class="painel-conteudo" id="conteudo">
+      <div id="aviso" class="aviso" role="alert"></div>
 
-    <main class="container">
-    <!-- Abas. As marcadas "so-admin" só aparecem para o perfil Administrador;
-         a proteção de verdade está no servidor (responde 403 para atendente). -->
-    <div class="abas" role="tablist" aria-label="Seções do painel">
-        <button class="aba" role="tab" aria-selected="true" data-painel="painelAgenda">Agenda do dia</button>
-        <button class="aba" role="tab" aria-selected="false" data-painel="painelHistorico">Histórico do tutor</button>
-        <button class="aba so-admin" role="tab" aria-selected="false" data-painel="painelServicos" hidden>Serviços</button>
-        <button class="aba so-admin" role="tab" aria-selected="false" data-painel="painelFuncionarios" hidden>Funcionários</button>
-        <button class="aba so-admin" role="tab" aria-selected="false" data-painel="painelBloqueios" hidden>Bloqueios</button>
-    </div>
-        <div id="aviso" class="aviso" role="alert"></div>
-
-        <!-- ═══════════ AGENDA DO DIA (UC05, UC06, UC12) ═══════════ -->
-        <section id="painelAgenda" class="painel" role="tabpanel">
-            <div id="blocoIndicadores">
-                <h2 class="secao-titulo">Indicadores</h2>
-                <div id="indicadores" class="indicadores"></div>
+      <!-- ═══════════ AGENDA DO DIA (UC05, UC06, UC12) ═══════════ -->
+      <section id="painelAgenda" class="painel" role="tabpanel" aria-label="Agenda do dia">
+        <div class="painel-cartao mb-4">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="btn-group" role="group" aria-label="Mudar o dia">
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btnDiaAnterior" aria-label="Dia anterior"><i class="bi bi-chevron-left" aria-hidden="true"></i> Anterior</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btnHoje">Hoje</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btnDiaSeguinte" aria-label="Dia seguinte">Próximo <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
             </div>
-            <div>
-                <h2 class="secao-titulo">Agenda do dia</h2>
-                <div class="barra-filtro">
-                    <button type="button" class="btn-sec" id="btnDiaAnterior" aria-label="Dia anterior">◀ Anterior</button>
-                    <label for="filtroData">Data:</label>
-                    <input type="date" id="filtroData">
-                    <button type="button" class="btn-sec" id="btnHoje">Hoje</button>
-                    <button type="button" class="btn-sec" id="btnDiaSeguinte" aria-label="Dia seguinte">Próximo ▶</button>
-                </div>
-                <div id="lista-agendamentos" class="grid-agendamentos" aria-live="polite">
-                    <p class="vazio">Carregando dados do servidor...</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══════════ HISTÓRICO DO TUTOR (UC04 pelo funcionário) ═══════════ -->
-        <section id="painelHistorico" class="painel" role="tabpanel" hidden>
-            <h2 class="secao-titulo">Histórico do tutor</h2>
-            <p class="ajuda">Digite o telefone do tutor para ver todos os atendimentos dele, de qualquer data.</p>
-            <form class="barra-filtro" id="formHistorico">
-                <label for="telHistorico">Telefone:</label>
-                <input type="tel" id="telHistorico" inputmode="tel" placeholder="(99) 98888-7777" required>
-                <button type="submit" class="btn-pri">Buscar</button>
-            </form>
-            <div class="bloco tabela-rolagem" id="resultadoHistorico" hidden></div>
-        </section>
-
-        <!-- ═══════════ SERVIÇOS (UC07) ═══════════ -->
-        <section id="painelServicos" class="painel" role="tabpanel" hidden>
-            <h2 class="secao-titulo">Serviços e preços</h2>
-            <p class="ajuda">O que estiver ativo aparece na página inicial. Cada serviço tem um profissional responsável: dois atendimentos só se chocam quando são do mesmo profissional.</p>
-            <div class="duas-colunas">
-                <div class="bloco tabela-rolagem"><table id="tabelaServicos"></table></div>
-                <form class="bloco form-admin" id="formServico">
-                    <h3 id="tituloFormServico">Novo serviço</h3>
-                    <input type="hidden" id="servId">
-                    <label>Nome do serviço <input id="servDescricao" maxlength="100" required></label>
-                    <label>Texto do card (aparece na página inicial)
-                        <textarea id="servDetalhes" maxlength="255" rows="2"></textarea></label>
-                    <div class="linha">
-                        <label>Preço (R$) <input id="servPreco" type="number" min="0" step="0.01" required></label>
-                        <label>Duração (min) <input id="servDuracao" type="number" min="5" max="600" step="5" required></label>
-                    </div>
-                    <div class="linha">
-                        <label>Ícone
-                            <select id="servIcone">
-                                <option value="🐾">🐾 Pata</option><option value="🛁">🛁 Banho</option>
-                                <option value="✂️">✂️ Tosa</option><option value="🩺">🩺 Consulta</option>
-                                <option value="💆">💆 Pacote</option><option value="💅">💅 Hidratação</option>
-                                <option value="🦷">🦷 Dental</option><option value="💉">💉 Vacina</option>
-                                <option value="🐈">🐈 Gato</option><option value="🐕">🐕 Cão</option>
-                            </select></label>
-                        <label>Responsável <select id="servResponsavel"></select></label>
-                    </div>
-                    <label class="check"><input type="checkbox" id="servAtivo" checked> Ativo (aparece na página)</label>
-                    <div class="form-acoes">
-                        <button type="submit" class="btn-pri">Salvar serviço</button>
-                        <button type="button" class="btn-sec" id="btnLimparServico">Novo / limpar</button>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <!-- ═══════════ FUNCIONÁRIOS (UC08) ═══════════ -->
-        <section id="painelFuncionarios" class="painel" role="tabpanel" hidden>
-            <h2 class="secao-titulo">Funcionários</h2>
-            <p class="ajuda"><strong>Administrador</strong> faz tudo. <strong>Atendente</strong> vê a agenda, muda status e consulta histórico. Quem sai da equipe é desligado (não apagado), para não perder o histórico.</p>
-            <div class="duas-colunas">
-                <div class="bloco tabela-rolagem"><table id="tabelaFuncionarios"></table></div>
-                <form class="bloco form-admin" id="formFuncionario">
-                    <h3 id="tituloFormFuncionario">Novo funcionário</h3>
-                    <input type="hidden" id="funcId">
-                    <label>Nome <input id="funcNome" maxlength="60" required></label>
-                    <div class="linha">
-                        <label>Telefone <input id="funcTelefone" type="tel" required></label>
-                        <label>E-mail <input id="funcEmail" type="email" maxlength="90" required></label>
-                    </div>
-                    <div class="linha">
-                        <label>Login <input id="funcLogin" maxlength="50" autocomplete="off" required></label>
-                        <label>Perfil
-                            <select id="funcPerfil"><option>Atendente</option><option>Administrador</option></select></label>
-                    </div>
-                    <label id="rotuloSenha">Senha inicial (mín. 6 caracteres)
-                        <input id="funcSenha" type="password" minlength="6" autocomplete="new-password"></label>
-                    <label class="check"><input type="checkbox" id="funcAtivo" checked> Ativo (pode entrar no sistema)</label>
-                    <div class="form-acoes">
-                        <button type="submit" class="btn-pri">Salvar funcionário</button>
-                        <button type="button" class="btn-sec" id="btnLimparFuncionario">Novo / limpar</button>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <!-- ═══════════ BLOQUEIOS (UC10) ═══════════ -->
-        <section id="painelBloqueios" class="painel" role="tabpanel" hidden>
-            <h2 class="secao-titulo">Bloqueio de horários</h2>
-            <p class="ajuda">Feriado, folga ou manutenção: os horários bloqueados somem da página de agendamento. Bloqueie o pet shop inteiro ou só um profissional.</p>
-            <div class="duas-colunas">
-                <div class="bloco tabela-rolagem"><table id="tabelaBloqueios"></table></div>
-                <form class="bloco form-admin" id="formBloqueio">
-                    <h3>Novo bloqueio</h3>
-                    <label>Data <input id="bloqData" type="date" required></label>
-                    <label class="check"><input type="checkbox" id="bloqDiaInteiro"> Dia inteiro (08:00 às 18:00)</label>
-                    <div class="linha" id="bloqHoras">
-                        <label>Das <input id="bloqInicio" type="time" step="1800" value="08:00"></label>
-                        <label>Até <input id="bloqFim" type="time" step="1800" value="12:00"></label>
-                    </div>
-                    <label>Quem fica indisponível <select id="bloqFuncionario"></select></label>
-                    <label>Motivo <input id="bloqMotivo" maxlength="100" placeholder="Ex.: feriado, folga, manutenção" required></label>
-                    <button type="submit" class="btn-pri">Bloquear</button>
-                </form>
-            </div>
-        </section>
-    </main>
-
-    <!-- Confirmação própria (substitui o confirm() do navegador): mostra o que vai mudar -->
-    <dialog id="dialogoConfirmar" aria-labelledby="dialogoTitulo">
-        <h2 id="dialogoTitulo">Confirmar</h2>
-        <p id="dialogoTexto"></p>
-        <div class="form-acoes" style="justify-content:flex-end;">
-            <button type="button" class="btn-sec" id="dialogoNao">Voltar</button>
-            <button type="button" class="btn-pri" id="dialogoSim">Confirmar</button>
+            <label for="filtroData" class="visually-hidden">Data</label>
+            <input type="date" id="filtroData" class="form-control form-control-sm w-auto">
+            <span class="ms-auto fw-bold text-verde" id="dataExtenso"></span>
+          </div>
         </div>
-    </dialog>
 
-    <dialog id="dialogoSenha" aria-labelledby="tituloSenha">
-        <h2 id="tituloSenha">Trocar minha senha</h2>
-        <form class="form-admin" id="formSenha">
-            <label>Senha atual <input id="senhaAtual" type="password" autocomplete="current-password" required></label>
-            <label>Nova senha (mín. 6) <input id="senhaNova" type="password" minlength="6" autocomplete="new-password" required></label>
-            <label>Repita a nova senha <input id="senhaNova2" type="password" minlength="6" autocomplete="new-password" required></label>
-            <p id="erroSenha" role="alert" style="color:#8A1C1C;font-weight:600;"></p>
-            <div class="form-acoes" style="justify-content:flex-end;">
-                <button type="button" class="btn-sec" id="btnFecharSenha">Cancelar</button>
-                <button type="submit" class="btn-pri">Salvar nova senha</button>
+        <div id="blocoIndicadores" class="mb-4">
+          <h2 class="visually-hidden">Indicadores</h2>
+          <div id="indicadores" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xxl-4 g-3"></div>
+        </div>
+
+        <h2 class="h5 mb-3">Atendimentos</h2>
+        <div id="lista-agendamentos" class="row row-cols-1 row-cols-md-2 row-cols-xxl-3 g-3" aria-live="polite">
+          <p class="vazio col-12">Carregando dados do servidor...</p>
+        </div>
+      </section>
+
+      <!-- ═══════════ HISTÓRICO DO TUTOR (UC04 pelo funcionário) ═══════════ -->
+      <section id="painelHistorico" class="painel" role="tabpanel" aria-label="Histórico do tutor" hidden>
+        <div class="painel-cartao mb-4">
+          <p class="text-suave">Digite o telefone do tutor para ver todos os atendimentos dele, de qualquer data.</p>
+          <form class="row g-2 align-items-end" id="formHistorico">
+            <div class="col-sm-6 col-lg-4">
+              <label for="telHistorico" class="form-label">Telefone</label>
+              <input type="tel" class="form-control" id="telHistorico" inputmode="tel" placeholder="(99) 98888-7777" required>
             </div>
-        </form>
-    </dialog>
+            <div class="col-auto"><button type="submit" class="btn btn-primary"><i class="bi bi-search me-1" aria-hidden="true"></i> Buscar</button></div>
+          </form>
+        </div>
+        <div class="painel-cartao table-responsive" id="resultadoHistorico" hidden></div>
+      </section>
 
-    <script>
-        // ═════════════════════════════════════════════════════════════
-        // Utilidades
-        // ═════════════════════════════════════════════════════════════
-        let eu = null;               // funcionário logado {id, nome, perfil}
-        let funcionarios = [];       // usado nos selects de responsável e bloqueio
-        const filtroData = document.getElementById('filtroData');
+      <!-- ═══════════ SERVIÇOS (UC07) ═══════════ -->
+      <section id="painelServicos" class="painel" role="tabpanel" aria-label="Serviços" hidden>
+        <p class="text-suave">O que estiver ativo aparece na página inicial. Cada serviço tem um profissional responsável: dois atendimentos só se chocam quando são do mesmo profissional.</p>
+        <div class="row g-4">
+          <div class="col-xxl-7"><div class="painel-cartao table-responsive"><table class="table table-hover table-pa" id="tabelaServicos"></table></div></div>
+          <div class="col-xxl-5">
+            <form class="painel-cartao form-admin" id="formServico">
+              <h3 id="tituloFormServico" class="mb-3">Novo serviço</h3>
+              <input type="hidden" id="servId">
+              <div class="mb-3"><label class="form-label" for="servDescricao">Nome do serviço</label><input class="form-control" id="servDescricao" maxlength="100" required></div>
+              <div class="mb-3"><label class="form-label" for="servDetalhes">Texto do card (aparece na página inicial)</label><textarea class="form-control" id="servDetalhes" maxlength="255" rows="2"></textarea></div>
+              <div class="row g-3 mb-3">
+                <div class="col-6"><label class="form-label" for="servPreco">Preço (R$)</label><input class="form-control" id="servPreco" type="number" min="0" step="0.01" required></div>
+                <div class="col-6"><label class="form-label" for="servDuracao">Duração (min)</label><input class="form-control" id="servDuracao" type="number" min="5" max="600" step="5" required></div>
+                <div class="col-6"><label class="form-label" for="servIcone">Ícone</label>
+                  <select class="form-select" id="servIcone">
+                    <option value="🐾">🐾 Pata</option><option value="🛁">🛁 Banho</option>
+                    <option value="✂️">✂️ Tosa</option><option value="🩺">🩺 Consulta</option>
+                    <option value="💆">💆 Pacote</option><option value="💅">💅 Hidratação</option>
+                    <option value="🦷">🦷 Dental</option><option value="💉">💉 Vacina</option>
+                    <option value="🐈">🐈 Gato</option><option value="🐕">🐕 Cão</option>
+                  </select></div>
+                <div class="col-6"><label class="form-label" for="servResponsavel">Responsável</label><select class="form-select" id="servResponsavel"></select></div>
+              </div>
+              <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" id="servAtivo" checked><label class="form-check-label" for="servAtivo">Ativo (aparece na página)</label></div>
+              <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">Salvar serviço</button>
+                <button type="button" class="btn btn-outline-primary" id="btnLimparServico">Novo / limpar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
 
-        // Cria um elemento com texto. textContent (e não innerHTML) impede que um
-        // texto digitado pelo cliente seja executado como código (XSS).
-        function el(tag, classe, texto) {
-            const e = document.createElement(tag);
-            if (classe) e.className = classe;
-            if (texto !== undefined && texto !== null) e.textContent = texto;
-            return e;
-        }
-        function linha(rotulo, valor) {
-            const div = el('div', 'info-linha');
-            div.appendChild(el('strong', null, rotulo + ': '));
-            div.appendChild(document.createTextNode(valor || '-'));
-            return div;
-        }
-        function dinheiro(v) {
-            return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-        function telefoneBR(t) {
-            if (!t) return '-';
-            return t.length === 11 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 7) + '-' + t.slice(7)
-                 : t.length === 10 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 6) + '-' + t.slice(6) : t;
-        }
-        function dataBR(iso) { const [d, h] = iso.split('T'); return d.split('-').reverse().join('/') + (h ? ' ' + h : ''); }
-        function isoDe(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-        function dataDeHoje() { return isoDe(new Date()); }
+      <!-- ═══════════ FUNCIONÁRIOS (UC08) ═══════════ -->
+      <section id="painelFuncionarios" class="painel" role="tabpanel" aria-label="Funcionários" hidden>
+        <p class="text-suave"><strong>Administrador</strong> faz tudo. <strong>Atendente</strong> vê a agenda, muda status e consulta histórico. Quem sai da equipe é desligado (não apagado), para não perder o histórico.</p>
+        <div class="row g-4">
+          <div class="col-xxl-7"><div class="painel-cartao table-responsive"><table class="table table-hover table-pa" id="tabelaFuncionarios"></table></div></div>
+          <div class="col-xxl-5">
+            <form class="painel-cartao form-admin" id="formFuncionario">
+              <h3 id="tituloFormFuncionario" class="mb-3">Novo funcionário</h3>
+              <input type="hidden" id="funcId">
+              <div class="mb-3"><label class="form-label" for="funcNome">Nome</label><input class="form-control" id="funcNome" maxlength="60" required></div>
+              <div class="row g-3 mb-3">
+                <div class="col-sm-6"><label class="form-label" for="funcTelefone">Telefone</label><input class="form-control" id="funcTelefone" type="tel" required></div>
+                <div class="col-sm-6"><label class="form-label" for="funcEmail">E-mail</label><input class="form-control" id="funcEmail" type="email" maxlength="90" required></div>
+                <div class="col-sm-6"><label class="form-label" for="funcLogin">Login</label><input class="form-control" id="funcLogin" maxlength="50" autocomplete="off" required></div>
+                <div class="col-sm-6"><label class="form-label" for="funcPerfil">Perfil</label>
+                  <select class="form-select" id="funcPerfil"><option>Atendente</option><option>Administrador</option></select></div>
+              </div>
+              <div class="mb-3"><label class="form-label" id="rotuloSenha" for="funcSenha">Senha inicial (mín. 6 caracteres)</label>
+                <input class="form-control" id="funcSenha" type="password" minlength="6" autocomplete="new-password" required></div>
+              <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" id="funcAtivo" checked><label class="form-check-label" for="funcAtivo">Ativo (pode entrar no sistema)</label></div>
+              <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">Salvar funcionário</button>
+                <button type="button" class="btn btn-outline-primary" id="btnLimparFuncionario">Novo / limpar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
 
-        function avisar(texto, ehErro) {
-            const a = document.getElementById('aviso');
-            a.className = 'aviso ' + (ehErro ? 'erro' : 'ok');
-            a.textContent = texto;
-            if (!ehErro) setTimeout(() => { if (a.textContent === texto) a.textContent = ''; }, 6000);
-        }
+      <!-- ═══════════ BLOQUEIOS (UC10) ═══════════ -->
+      <section id="painelBloqueios" class="painel" role="tabpanel" aria-label="Bloqueios" hidden>
+        <p class="text-suave">Feriado, folga ou manutenção: os horários bloqueados somem da página de agendamento. Bloqueie o pet shop inteiro ou só um profissional.</p>
+        <div class="row g-4">
+          <div class="col-xxl-7"><div class="painel-cartao table-responsive"><table class="table table-hover table-pa" id="tabelaBloqueios"></table></div></div>
+          <div class="col-xxl-5">
+            <form class="painel-cartao form-admin" id="formBloqueio">
+              <h3 class="mb-3">Novo bloqueio</h3>
+              <div class="mb-3"><label class="form-label" for="bloqData">Data</label><input class="form-control" id="bloqData" type="date" required></div>
+              <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" id="bloqDiaInteiro"><label class="form-check-label" for="bloqDiaInteiro">Dia inteiro (08:00 às 18:00)</label></div>
+              <div class="row g-3 mb-3" id="bloqHoras">
+                <div class="col-6"><label class="form-label" for="bloqInicio">Das</label><input class="form-control" id="bloqInicio" type="time" step="1800" value="08:00"></div>
+                <div class="col-6"><label class="form-label" for="bloqFim">Até</label><input class="form-control" id="bloqFim" type="time" step="1800" value="12:00"></div>
+              </div>
+              <div class="mb-3"><label class="form-label" for="bloqFuncionario">Quem fica indisponível</label><select class="form-select" id="bloqFuncionario"></select></div>
+              <div class="mb-3"><label class="form-label" for="bloqMotivo">Motivo</label><input class="form-control" id="bloqMotivo" maxlength="100" placeholder="Ex.: feriado, folga, manutenção" required></div>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-calendar-x me-1" aria-hidden="true"></i> Bloquear</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
 
-        /** fetch que já trata 401 (volta ao login) e transforma erro da API em mensagem. */
-        function api(caminho, opcoes) {
-            const o = Object.assign({ headers: { 'Content-Type': 'application/json' } }, opcoes || {});
-            if (o.body && typeof o.body !== 'string') o.body = JSON.stringify(o.body);
-            return fetch(caminho, o).then(r => {
-                if (r.status === 401) { window.location.href = 'login.html'; throw new Error('Sessão encerrada.'); }
-                return r.text().then(t => {
-                    const corpo = t ? JSON.parse(t) : {};
-                    if (!r.ok) throw new Error(corpo.erro || ('Erro ' + r.status));
-                    return corpo;
-                });
+<!-- Avisos (toast do Bootstrap) -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1090">
+  <div id="toast" class="toast toast-pa align-items-center" role="status" aria-live="polite" aria-atomic="true">
+    <div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button></div>
+  </div>
+</div>
+
+<!-- Confirmação própria (modal do Bootstrap, no lugar do confirm() do navegador): mostra o que vai mudar -->
+<div class="modal fade" id="dialogoConfirmar" tabindex="-1" aria-labelledby="dialogoTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title h4" id="dialogoTitulo">Confirmar</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+      <div class="modal-body"><p id="dialogoTexto" class="mb-0"></p></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" id="dialogoNao">Voltar</button>
+        <button type="button" class="btn btn-primary" id="dialogoSim">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="dialogoSenha" tabindex="-1" aria-labelledby="tituloSenha" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content form-admin" id="formSenha">
+      <div class="modal-header"><h2 class="modal-title h4" id="tituloSenha"><i class="bi bi-key me-2 text-ambar" aria-hidden="true"></i>Trocar minha senha</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+      <div class="modal-body">
+        <div class="mb-3"><label class="form-label" for="senhaAtual">Senha atual</label><input class="form-control" id="senhaAtual" type="password" autocomplete="current-password" required></div>
+        <div class="mb-3"><label class="form-label" for="senhaNova">Nova senha (mín. 6)</label><input class="form-control" id="senhaNova" type="password" minlength="6" autocomplete="new-password" required></div>
+        <div class="mb-2"><label class="form-label" for="senhaNova2">Repita a nova senha</label><input class="form-control" id="senhaNova2" type="password" minlength="6" autocomplete="new-password" required></div>
+        <p id="erroSenha" role="alert" class="text-danger fw-bold mb-0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" id="btnFecharSenha" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar nova senha</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script>
+    // ═════════════════════════════════════════════════════════════
+    // Utilidades
+    // ═════════════════════════════════════════════════════════════
+    let eu = null;               // funcionário logado {id, nome, perfil}
+    let funcionarios = [];       // usado nos selects de responsável e bloqueio
+    const filtroData = document.getElementById('filtroData');
+
+    // Cria um elemento com texto. textContent (e não innerHTML) impede que um
+    // texto digitado pelo cliente seja executado como código (XSS).
+    function el(tag, classe, texto) {
+        const e = document.createElement(tag);
+        if (classe) e.className = classe;
+        if (texto !== undefined && texto !== null) e.textContent = texto;
+        return e;
+    }
+    function icone(nome, extra) {
+        const i = document.createElement('i');
+        i.className = 'bi bi-' + nome + (extra ? ' ' + extra : '');
+        i.setAttribute('aria-hidden', 'true');
+        return i;
+    }
+    function dinheiro(v) {
+        return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    function telefoneBR(t) {
+        if (!t) return '-';
+        return t.length === 11 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 7) + '-' + t.slice(7)
+             : t.length === 10 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 6) + '-' + t.slice(6) : t;
+    }
+    function dataBR(iso) { const [d, h] = iso.split('T'); return d.split('-').reverse().join('/') + (h ? ' ' + h : ''); }
+    function isoDe(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function dataDeHoje() { return isoDe(new Date()); }
+    function cabecalho(tabela, colunas) {
+        const thead = el('thead'); const tr = el('tr');
+        colunas.forEach(c => tr.appendChild(el('th', null, c)));
+        thead.appendChild(tr); tabela.appendChild(thead);
+        const tbody = el('tbody'); tabela.appendChild(tbody);
+        return tbody;
+    }
+
+    /** Aviso em toast. Erro usa role="alert"; sucesso usa role="status". */
+    function avisar(texto, ehErro) {
+        const t = document.getElementById('toast');
+        t.setAttribute('role', ehErro ? 'alert' : 'status');
+        t.setAttribute('aria-live', ehErro ? 'assertive' : 'polite');
+        t.className = 'toast toast-pa align-items-center ' + (ehErro ? 'erro' : 'ok');
+        t.querySelector('.toast-body').replaceChildren(icone(ehErro ? 'exclamation-triangle-fill' : 'check-circle-fill', 'me-2'), document.createTextNode(texto));
+        // O texto também fica em #aviso (oculto visualmente) para quem usa leitor de tela
+        document.getElementById('aviso').textContent = '';
+        bootstrap.Toast.getOrCreateInstance(t, { delay: ehErro ? 9000 : 6000 }).show();
+    }
+
+    /** fetch que já trata 401 (volta ao login) e transforma erro da API em mensagem. */
+    function api(caminho, opcoes) {
+        const o = Object.assign({ headers: { 'Content-Type': 'application/json' } }, opcoes || {});
+        if (o.body && typeof o.body !== 'string') o.body = JSON.stringify(o.body);
+        return fetch(caminho, o).then(r => {
+            if (r.status === 401) { window.location.href = 'login.html'; throw new Error('Sessão encerrada.'); }
+            return r.text().then(t => {
+                const corpo = t ? JSON.parse(t) : {};
+                if (!r.ok) throw new Error(corpo.erro || ('Erro ' + r.status));
+                return corpo;
             });
-        }
+        });
+    }
 
-        /** Diálogo de confirmação próprio. Devolve uma Promise<boolean>. */
-        function confirmar(titulo, texto, rotuloSim, perigo) {
-            return new Promise(resolve => {
-                const d = document.getElementById('dialogoConfirmar');
-                document.getElementById('dialogoTitulo').textContent = titulo;
-                document.getElementById('dialogoTexto').textContent = texto;
-                const sim = document.getElementById('dialogoSim');
-                sim.textContent = rotuloSim || 'Confirmar';
-                sim.classList.toggle('btn-perigo', !!perigo);
-                const fechar = (v) => { d.close(); sim.onclick = null; document.getElementById('dialogoNao').onclick = null; resolve(v); };
-                sim.onclick = () => fechar(true);
-                document.getElementById('dialogoNao').onclick = () => fechar(false);
-                d.oncancel = () => resolve(false);
-                d.showModal();
+    /** Diálogo de confirmação (modal do Bootstrap). Devolve uma Promise<boolean>. */
+    const modalConfirmar = new bootstrap.Modal(document.getElementById('dialogoConfirmar'));
+    function confirmar(titulo, texto, rotuloSim, perigo) {
+        return new Promise(resolve => {
+            const d = document.getElementById('dialogoConfirmar');
+            document.getElementById('dialogoTitulo').textContent = titulo;
+            document.getElementById('dialogoTexto').textContent = texto;
+            const sim = document.getElementById('dialogoSim');
+            sim.textContent = rotuloSim || 'Confirmar';
+            sim.className = 'btn ' + (perigo ? 'btn-danger btn-perigo' : 'btn-primary');
+            let resposta = false;
+            sim.onclick = () => { resposta = true; modalConfirmar.hide(); };
+            document.getElementById('dialogoNao').onclick = () => modalConfirmar.hide();
+            d.addEventListener('hidden.bs.modal', () => { sim.onclick = null; resolve(resposta); }, { once: true });
+            modalConfirmar.show();
+        });
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // Abas (menu lateral)
+    // ═════════════════════════════════════════════════════════════
+    const carregarAba = {
+        painelAgenda: () => atualizarTela(),
+        painelHistorico: () => document.getElementById('telHistorico').focus(),
+        painelServicos: () => carregarFuncionarios().then(carregarServicos),
+        painelFuncionarios: () => carregarFuncionarios(),
+        painelBloqueios: () => carregarFuncionarios().then(carregarBloqueios)
+    };
+    document.querySelectorAll('.aba').forEach(aba => aba.addEventListener('click', () => {
+        document.querySelectorAll('.aba').forEach(a => a.setAttribute('aria-selected', String(a === aba)));
+        document.querySelectorAll('.painel').forEach(p => { p.hidden = p.id !== aba.dataset.painel; });
+        document.getElementById('tituloPainel').textContent = aba.textContent.trim();
+        document.getElementById('aviso').textContent = '';
+        const menu = bootstrap.Offcanvas.getInstance(document.getElementById('menuPainel'));
+        if (menu) menu.hide();
+        carregarAba[aba.dataset.painel]();
+    }));
+
+    // ═════════════════════════════════════════════════════════════
+    // Agenda do dia
+    // ═════════════════════════════════════════════════════════════
+    function carregarIndicadores() {
+        api('/api/indicadores?data=' + filtroData.value).then(ind => {
+            const box = document.getElementById('indicadores');
+            box.replaceChildren();
+            [
+                ['Atendimentos no dia', ind.atendimentosDia, 'calendar-check', 'verde'],
+                ['Concluídos no dia', ind.concluidosDia, 'check2-circle', ''],
+                ['Ocupação da agenda', ind.ocupacaoPercentual + '%', 'speedometer2', 'ambar'],
+                ['Faturamento do dia', dinheiro(ind.faturamentoDia), 'cash-coin', 'verde'],
+                ['Atendimentos no mês', ind.atendimentosMes, 'calendar3', ''],
+                ['Faturamento do mês', dinheiro(ind.faturamentoMes), 'graph-up-arrow', 'ambar'],
+                ['Serviço mais procurado (mês)', ind.servicoMaisProcurado, 'trophy', 'verde']
+            ].forEach(([rotulo, valor, ic, cor], i, todos) => {
+                const col = el('div', 'col');
+                const card = el('div', 'indicador');
+                const bola = el('span', 'icone-redondo ' + cor);
+                bola.appendChild(icone(ic));
+                const txt = el('div');
+                txt.appendChild(el('div', i === todos.length - 1 ? 'valor texto' : 'valor', valor));
+                txt.appendChild(el('div', 'rotulo', rotulo));
+                card.append(bola, txt);
+                col.appendChild(card);
+                box.appendChild(col);
             });
-        }
+        }).catch(e => avisar('Indicadores: ' + e.message, true));
+    }
 
-        // ═════════════════════════════════════════════════════════════
-        // Abas
-        // ═════════════════════════════════════════════════════════════
-        const carregarAba = {
-            painelAgenda: () => atualizarTela(),
-            painelHistorico: () => document.getElementById('telHistorico').focus(),
-            painelServicos: () => carregarFuncionarios().then(carregarServicos),
-            painelFuncionarios: () => carregarFuncionarios(),
-            painelBloqueios: () => carregarFuncionarios().then(carregarBloqueios)
-        };
-        document.querySelectorAll('.aba').forEach(aba => aba.addEventListener('click', () => {
-            document.querySelectorAll('.aba').forEach(a => a.setAttribute('aria-selected', String(a === aba)));
-            document.querySelectorAll('.painel').forEach(p => { p.hidden = p.id !== aba.dataset.painel; });
-            document.getElementById('aviso').textContent = '';
-            carregarAba[aba.dataset.painel]();
-        }));
-
-        // ═════════════════════════════════════════════════════════════
-        // Agenda do dia
-        // ═════════════════════════════════════════════════════════════
-        function carregarIndicadores() {
-            api('/api/indicadores?data=' + filtroData.value).then(ind => {
-                const box = document.getElementById('indicadores');
-                box.replaceChildren();
-                [
-                    ['Atendimentos no dia', ind.atendimentosDia],
-                    ['Concluídos no dia', ind.concluidosDia],
-                    ['Ocupação da agenda', ind.ocupacaoPercentual + '%'],
-                    ['Faturamento do dia', dinheiro(ind.faturamentoDia)],
-                    ['Atendimentos no mês', ind.atendimentosMes],
-                    ['Faturamento do mês', dinheiro(ind.faturamentoMes)],
-                    ['Serviço mais procurado (mês)', ind.servicoMaisProcurado]
-                ].forEach(([rotulo, valor], i, todos) => {
-                    const card = el('div', i === todos.length - 1 ? 'indicador texto' : 'indicador');
-                    card.appendChild(el('div', 'valor', valor));
-                    card.appendChild(el('div', 'rotulo', rotulo));
-                    box.appendChild(card);
-                });
-            }).catch(e => avisar('Indicadores: ' + e.message, true));
-        }
-
-        function buscarAgendamentos() {
-            const container = document.getElementById('lista-agendamentos');
-            api('/api/agendamentos?data=' + filtroData.value).then(dados => {
-                container.replaceChildren();
-                if (dados.length === 0) {
-                    const v = el('p', 'vazio', '📅 Nenhum agendamento nesta data.');
-                    v.appendChild(el('small', null, 'Use Anterior e Próximo para ver outros dias.'));
-                    container.appendChild(v);
-                    return;
-                }
-                dados.forEach(item => container.appendChild(montarCard(item)));
-            }).catch(e => {
-                container.replaceChildren(el('p', 'vazio', 'Não foi possível carregar a agenda: ' + e.message));
-            });
-        }
-
-        // Botões de cada status (seguem a RegraStatus do servidor)
-        const ACOES = {
-            'Pendente':     [['✓ Confirmar', 'btn-confirmar', 'Confirmado'], ['▶ Iniciar', 'btn-iniciar', 'Em andamento'], ['✕ Cancelar', 'btn-cancelar', 'Cancelado']],
-            'Confirmado':   [['▶ Iniciar', 'btn-iniciar', 'Em andamento'], ['✕ Cancelar', 'btn-cancelar', 'Cancelado']],
-            'Em andamento': [['✓ Concluir', 'btn-concluir', 'Concluído'], ['✕ Cancelar', 'btn-cancelar', 'Cancelado']]
-        };
-
-        function montarCard(item) {
-            const [data, hora] = item.dataHora.split('T');
-            const card = el('div', 'card');
-            if (item.status === 'Concluído') card.style.borderTopColor = '#1E7E34';
-            if (item.status === 'Cancelado') card.style.borderTopColor = '#B3261E';
-
-            const cab = el('div', 'card-header');
-            cab.appendChild(el('div', 'tutor-nome', hora + ' · ' + item.tutor));
-            cab.appendChild(el('div', 'badge status-' + item.status.split(' ')[0], item.status));
-            card.appendChild(cab);
-
-            if (item.restricoes) {
-                card.appendChild(el('div', 'alerta-saude', '⚠️ Restrição de saúde: ' + item.restricoes));
-            }
-            let pet = item.pet;
-            const extras = [item.especie, item.raca, item.idade != null ? item.idade + ' ano(s)' : null].filter(Boolean);
-            if (extras.length) pet += ' (' + extras.join(', ') + ')';
-            card.appendChild(linha('Pet', pet));
-            card.appendChild(linha('Serviço', item.servico + ' – ' + item.duracaoMinutos + ' min'));
-            card.appendChild(linha('Responsável', item.responsavel || 'Equipe'));
-            card.appendChild(linha('Telefone', telefoneBR(item.telefone)));
-            card.appendChild(linha('Código', item.codigo));
-            if (item.observacoes) card.appendChild(el('div', 'obs-box', '📝 ' + item.observacoes));
-
-            const acoes = ACOES[item.status];
-            if (acoes) {
-                const caixa = el('div', 'card-acoes');
-                acoes.forEach(([texto, classe, novo]) => {
-                    const b = el('button', 'btn-acao ' + classe, texto);
-                    b.type = 'button';
-                    b.addEventListener('click', () => mudarStatus(item, novo));
-                    caixa.appendChild(b);
-                });
-                card.appendChild(caixa);
-            }
-            return card;
-        }
-
-        function mudarStatus(item, novoStatus) {
-            const hora = item.dataHora.split('T')[1];
-            const texto = item.pet + ' (' + item.tutor + ') · ' + item.servico + ' às ' + hora + ': de "' + item.status + '" para "' + novoStatus + '".';
-            const perigo = novoStatus === 'Cancelado';
-            confirmar(perigo ? 'Cancelar agendamento?' : 'Mudar status?', texto, perigo ? 'Sim, cancelar' : 'Confirmar', perigo)
-                .then(ok => {
-                    if (!ok) return;
-                    api('/api/agendamento/' + item.id + '/status', { method: 'PUT', body: { status: novoStatus } })
-                        .then(() => { avisar('Status atualizado para "' + novoStatus + '".', false); atualizarTela(); })
-                        .catch(e => avisar(e.message, true));
-                });
-        }
-
-        function atualizarTela() { carregarIndicadores(); buscarAgendamentos(); }
-
-        function mudarDia(dias) {
-            const d = new Date(filtroData.value + 'T12:00');
-            d.setDate(d.getDate() + dias);
-            filtroData.value = isoDe(d);
-            atualizarTela();
-        }
-
-        // ═════════════════════════════════════════════════════════════
-        // Histórico do tutor
-        // ═════════════════════════════════════════════════════════════
-        document.getElementById('formHistorico').addEventListener('submit', e => {
-            e.preventDefault();
-            const tel = document.getElementById('telHistorico').value;
-            const box = document.getElementById('resultadoHistorico');
-            api('/api/agendamentos?telefone=' + encodeURIComponent(tel)).then(lista => {
-                box.hidden = false;
-                box.replaceChildren();
-                if (lista.length === 0) { box.appendChild(el('p', null, 'Nenhum atendimento encontrado para este telefone.')); return; }
-                box.appendChild(el('h3', null, lista[0].tutor + ' · ' + lista.length + ' atendimento(s)'));
-                const t = el('table');
-                const cab = el('tr');
-                ['Data', 'Pet', 'Serviço', 'Responsável', 'Status'].forEach(c => cab.appendChild(el('th', null, c)));
-                t.appendChild(cab);
-                lista.forEach(a => {
-                    const tr = el('tr');
-                    [dataBR(a.dataHora), a.pet, a.servico, a.responsavel || 'Equipe', a.status].forEach(v => tr.appendChild(el('td', null, v)));
-                    t.appendChild(tr);
-                });
-                box.appendChild(t);
-            }).catch(err => avisar(err.message, true));
-        });
-
-        // ═════════════════════════════════════════════════════════════
-        // Funcionários (UC08)
-        // ═════════════════════════════════════════════════════════════
-        function carregarFuncionarios() {
-            return api('/api/admin/funcionarios').then(lista => {
-                funcionarios = lista;
-                const t = document.getElementById('tabelaFuncionarios');
-                t.replaceChildren();
-                const cab = el('tr');
-                ['Nome', 'Login', 'Perfil', 'Situação', 'Ações'].forEach(c => cab.appendChild(el('th', null, c)));
-                t.appendChild(cab);
-                lista.forEach(f => {
-                    const tr = el('tr', f.ativo ? '' : 'inativo');
-                    [f.nome, f.login, f.perfil, f.ativo ? 'Ativo' : 'Desligado'].forEach(v => tr.appendChild(el('td', null, v)));
-                    const td = el('td');
-                    const b = el('button', 'btn-sec', 'Editar');
-                    b.type = 'button';
-                    b.addEventListener('click', () => editarFuncionario(f));
-                    td.appendChild(b);
-                    tr.appendChild(td);
-                    t.appendChild(tr);
-                });
-                preencherSelectsFuncionarios();
-            }).catch(e => avisar(e.message, true));
-        }
-
-        function preencherSelectsFuncionarios() {
-            const ativos = funcionarios.filter(f => f.ativo);
-            const resp = document.getElementById('servResponsavel');
-            const valorResp = resp.value;
-            resp.replaceChildren(new Option('Equipe (sem responsável)', ''));
-            ativos.forEach(f => resp.appendChild(new Option(f.nome + ' (' + f.perfil + ')', f.id)));
-            resp.value = valorResp;
-            const bloq = document.getElementById('bloqFuncionario');
-            bloq.replaceChildren(new Option('Pet shop inteiro', ''));
-            ativos.forEach(f => bloq.appendChild(new Option('Só ' + f.nome, f.id)));
-        }
-
-        function limparFuncionario() {
-            document.getElementById('formFuncionario').reset();
-            document.getElementById('funcId').value = '';
-            document.getElementById('tituloFormFuncionario').textContent = 'Novo funcionário';
-            document.getElementById('rotuloSenha').firstChild.textContent = 'Senha inicial (mín. 6 caracteres)';
-            document.getElementById('funcSenha').required = true;
-        }
-
-        function editarFuncionario(f) {
-            document.getElementById('funcId').value = f.id;
-            document.getElementById('funcNome').value = f.nome;
-            document.getElementById('funcTelefone').value = f.telefone;
-            document.getElementById('funcEmail').value = f.email;
-            document.getElementById('funcLogin').value = f.login;
-            document.getElementById('funcPerfil').value = f.perfil;
-            document.getElementById('funcAtivo').checked = !!f.ativo;
-            document.getElementById('funcSenha').value = '';
-            document.getElementById('funcSenha').required = false;
-            document.getElementById('rotuloSenha').firstChild.textContent = 'Nova senha (deixe em branco para manter)';
-            document.getElementById('tituloFormFuncionario').textContent = 'Editar: ' + f.nome;
-            document.getElementById('funcNome').focus();
-        }
-
-        document.getElementById('btnLimparFuncionario').addEventListener('click', limparFuncionario);
-        document.getElementById('formFuncionario').addEventListener('submit', e => {
-            e.preventDefault();
-            const id = document.getElementById('funcId').value;
-            const corpo = {
-                nome: document.getElementById('funcNome').value,
-                telefone: document.getElementById('funcTelefone').value,
-                email: document.getElementById('funcEmail').value,
-                login: document.getElementById('funcLogin').value,
-                perfil: document.getElementById('funcPerfil').value,
-                ativo: document.getElementById('funcAtivo').checked
-            };
-            const senha = document.getElementById('funcSenha').value;
-            if (id) corpo.novaSenha = senha; else corpo.senha = senha;
-            api(id ? '/api/admin/funcionarios/' + id : '/api/admin/funcionarios', { method: id ? 'PUT' : 'POST', body: corpo })
-                .then(r => { avisar(r.mensagem, false); limparFuncionario(); carregarFuncionarios(); })
-                .catch(err => avisar(err.message, true));
-        });
-
-        // ═════════════════════════════════════════════════════════════
-        // Serviços (UC07)
-        // ═════════════════════════════════════════════════════════════
-        function carregarServicos() {
-            return api('/api/admin/servicos').then(lista => {
-                const t = document.getElementById('tabelaServicos');
-                t.replaceChildren();
-                const cab = el('tr');
-                ['Serviço', 'Preço', 'Duração', 'Responsável', 'Situação', 'Ações'].forEach(c => cab.appendChild(el('th', null, c)));
-                t.appendChild(cab);
-                lista.forEach(s => {
-                    const tr = el('tr', s.ativo ? '' : 'inativo');
-                    [(s.icone || '🐾') + ' ' + s.descricao, dinheiro(s.preco), s.duracaoMinutos + ' min', s.responsavel || 'Equipe', s.ativo ? 'Ativo' : 'Desativado']
-                        .forEach(v => tr.appendChild(el('td', null, v)));
-                    const td = el('td');
-                    const b = el('button', 'btn-sec', 'Editar');
-                    b.type = 'button';
-                    b.addEventListener('click', () => editarServico(s));
-                    td.appendChild(b);
-                    tr.appendChild(td);
-                    t.appendChild(tr);
-                });
-            }).catch(e => avisar(e.message, true));
-        }
-
-        function limparServico() {
-            document.getElementById('formServico').reset();
-            document.getElementById('servId').value = '';
-            document.getElementById('tituloFormServico').textContent = 'Novo serviço';
-        }
-
-        function editarServico(s) {
-            document.getElementById('servId').value = s.id;
-            document.getElementById('servDescricao').value = s.descricao;
-            document.getElementById('servDetalhes').value = s.detalhes || '';
-            document.getElementById('servPreco').value = s.preco;
-            document.getElementById('servDuracao').value = s.duracaoMinutos;
-            const icone = document.getElementById('servIcone');
-            if (s.icone && ![...icone.options].some(o => o.value === s.icone)) icone.appendChild(new Option(s.icone, s.icone));
-            icone.value = s.icone || '🐾';
-            document.getElementById('servResponsavel').value = s.idResponsavel || '';
-            document.getElementById('servAtivo').checked = !!s.ativo;
-            document.getElementById('tituloFormServico').textContent = 'Editar: ' + s.descricao;
-            document.getElementById('servDescricao').focus();
-        }
-
-        document.getElementById('btnLimparServico').addEventListener('click', limparServico);
-        document.getElementById('formServico').addEventListener('submit', e => {
-            e.preventDefault();
-            const id = document.getElementById('servId').value;
-            const corpo = {
-                descricao: document.getElementById('servDescricao').value,
-                detalhes: document.getElementById('servDetalhes').value,
-                icone: document.getElementById('servIcone').value,
-                preco: document.getElementById('servPreco').value,
-                duracaoMinutos: document.getElementById('servDuracao').value,
-                idResponsavel: document.getElementById('servResponsavel').value,
-                ativo: document.getElementById('servAtivo').checked
-            };
-            api(id ? '/api/admin/servicos/' + id : '/api/admin/servicos', { method: id ? 'PUT' : 'POST', body: corpo })
-                .then(r => { avisar(r.mensagem, false); limparServico(); carregarServicos(); })
-                .catch(err => avisar(err.message, true));
-        });
-
-        // ═════════════════════════════════════════════════════════════
-        // Bloqueios (UC10)
-        // ═════════════════════════════════════════════════════════════
-        function carregarBloqueios() {
-            return api('/api/admin/bloqueios').then(lista => {
-                const t = document.getElementById('tabelaBloqueios');
-                t.replaceChildren();
-                if (lista.length === 0) {
-                    const tr = el('tr'); tr.appendChild(el('td', null, 'Nenhum bloqueio futuro.')); t.appendChild(tr);
-                    return;
-                }
-                const cab = el('tr');
-                ['Início', 'Fim', 'Quem', 'Motivo', 'Ações'].forEach(c => cab.appendChild(el('th', null, c)));
-                t.appendChild(cab);
-                lista.forEach(b => {
-                    const tr = el('tr');
-                    [dataBR(b.inicio), dataBR(b.fim), b.profissional || 'Pet shop inteiro', b.motivo].forEach(v => tr.appendChild(el('td', null, v)));
-                    const td = el('td');
-                    const btn = el('button', 'btn-sec', 'Remover');
-                    btn.type = 'button';
-                    btn.addEventListener('click', () => confirmar('Remover bloqueio?', b.motivo + ' · ' + dataBR(b.inicio) + ' até ' + dataBR(b.fim) + '. Os horários voltam a ficar livres.', 'Remover', true)
-                        .then(ok => ok && api('/api/admin/bloqueios/' + b.id, { method: 'DELETE' })
-                            .then(r => { avisar(r.mensagem, false); carregarBloqueios(); })
-                            .catch(err => avisar(err.message, true))));
-                    td.appendChild(btn);
-                    tr.appendChild(td);
-                    t.appendChild(tr);
-                });
-            }).catch(e => avisar(e.message, true));
-        }
-
-        document.getElementById('bloqDiaInteiro').addEventListener('change', e => {
-            document.getElementById('bloqHoras').hidden = e.target.checked;
-        });
-        document.getElementById('formBloqueio').addEventListener('submit', e => {
-            e.preventDefault();
-            api('/api/admin/bloqueios', { method: 'POST', body: {
-                data: document.getElementById('bloqData').value,
-                diaInteiro: document.getElementById('bloqDiaInteiro').checked,
-                horaInicio: document.getElementById('bloqInicio').value,
-                horaFim: document.getElementById('bloqFim').value,
-                idFuncionario: document.getElementById('bloqFuncionario').value,
-                motivo: document.getElementById('bloqMotivo').value
-            }}).then(r => { avisar(r.mensagem, false); document.getElementById('bloqMotivo').value = ''; carregarBloqueios(); })
-              .catch(err => avisar(err.message, true));
-        });
-
-        // ═════════════════════════════════════════════════════════════
-        // Minha senha e sair
-        // ═════════════════════════════════════════════════════════════
-        const dialogoSenha = document.getElementById('dialogoSenha');
-        document.getElementById('btnMinhaSenha').addEventListener('click', () => {
-            document.getElementById('formSenha').reset();
-            document.getElementById('erroSenha').textContent = '';
-            dialogoSenha.showModal();
-        });
-        document.getElementById('btnFecharSenha').addEventListener('click', () => dialogoSenha.close());
-        document.getElementById('formSenha').addEventListener('submit', e => {
-            e.preventDefault();
-            const nova = document.getElementById('senhaNova').value;
-            if (nova !== document.getElementById('senhaNova2').value) {
-                document.getElementById('erroSenha').textContent = 'As duas senhas novas não são iguais.';
+    function buscarAgendamentos() {
+        const container = document.getElementById('lista-agendamentos');
+        const d = new Date(filtroData.value + 'T12:00');
+        document.getElementById('dataExtenso').textContent = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+        api('/api/agendamentos?data=' + filtroData.value).then(dados => {
+            container.replaceChildren();
+            if (dados.length === 0) {
+                const v = el('div', 'vazio col-12 painel-cartao');
+                v.appendChild(icone('calendar-heart'));
+                v.appendChild(el('p', 'fw-bold text-verde mb-1', 'Nenhum agendamento nesta data.'));
+                v.appendChild(el('small', null, 'Use Anterior e Próximo para ver outros dias.'));
+                container.appendChild(v);
                 return;
             }
-            api('/api/minha-senha', { method: 'PUT', body: { senhaAtual: document.getElementById('senhaAtual').value, novaSenha: nova } })
-                .then(r => { dialogoSenha.close(); avisar(r.mensagem, false); })
-                .catch(err => { document.getElementById('erroSenha').textContent = err.message; });
+            dados.forEach(item => container.appendChild(montarCard(item)));
+        }).catch(e => {
+            container.replaceChildren(el('p', 'vazio col-12', 'Não foi possível carregar a agenda: ' + e.message));
         });
+    }
 
-        document.getElementById('btnSair').addEventListener('click', () => {
-            fetch('/api/logout', { method: 'POST' }).finally(() => {
-                sessionStorage.removeItem('usuarioLogado');
-                window.location.href = 'login.html';
+    // Botões de cada status (seguem a RegraStatus do servidor)
+    const ACOES = {
+        'Pendente':     [['Confirmar', 'btn-primary', 'Confirmado', 'check-lg'], ['Iniciar', 'btn-outline-primary', 'Em andamento', 'play-fill'], ['Cancelar', 'btn-outline-danger', 'Cancelado', 'x-lg']],
+        'Confirmado':   [['Iniciar', 'btn-primary', 'Em andamento', 'play-fill'], ['Cancelar', 'btn-outline-danger', 'Cancelado', 'x-lg']],
+        'Em andamento': [['Concluir', 'btn-primary', 'Concluído', 'check2-all'], ['Cancelar', 'btn-outline-danger', 'Cancelado', 'x-lg']]
+    };
+
+    function montarCard(item) {
+        const hora = item.dataHora.split('T')[1];
+        const col = el('div', 'col');
+        const card = el('article', 'agenda-card st-' + item.status.split(' ')[0]);
+
+        const cab = el('div', 'd-flex justify-content-between align-items-start gap-2');
+        const quem = el('div');
+        quem.appendChild(el('div', 'agenda-hora', hora));
+        quem.appendChild(el('div', 'tutor-nome fw-bold mt-1', item.tutor));
+        cab.appendChild(quem);
+        cab.appendChild(el('span', 'status status-' + item.status.split(' ')[0], item.status));
+        card.appendChild(cab);
+
+        if (item.restricoes) {
+            const alerta = el('div', 'alerta-saude');
+            alerta.append(icone('exclamation-triangle-fill', 'me-1'), 'Restrição de saúde: ' + item.restricoes);
+            card.appendChild(alerta);
+        }
+        let pet = item.pet;
+        const extras = [item.especie, item.raca, item.idade != null ? item.idade + ' ano(s)' : null].filter(Boolean);
+        if (extras.length) pet += ' (' + extras.join(', ') + ')';
+        const dl = el('dl');
+        [['Pet', pet], ['Serviço', item.servico + ' – ' + item.duracaoMinutos + ' min'], ['Responsável', item.responsavel || 'Equipe'],
+         ['Telefone', telefoneBR(item.telefone)], ['Código', item.codigo]].forEach(([r, v]) => {
+            dl.appendChild(el('dt', null, r));
+            dl.appendChild(el('dd', null, v || '-'));
+        });
+        card.appendChild(dl);
+        if (item.observacoes) {
+            const obs = el('div', 'obs-box');
+            obs.append(icone('chat-left-text', 'me-1'), item.observacoes);
+            card.appendChild(obs);
+        }
+
+        const acoes = ACOES[item.status];
+        if (acoes) {
+            const caixa = el('div', 'agenda-acoes');
+            acoes.forEach(([texto, classe, novo, ic]) => {
+                const b = el('button', 'btn btn-sm ' + classe);
+                b.type = 'button';
+                b.append(icone(ic, 'me-1'), texto);
+                b.addEventListener('click', () => mudarStatus(item, novo));
+                caixa.appendChild(b);
             });
-        });
+            card.appendChild(caixa);
+        }
+        col.appendChild(card);
+        return col;
+    }
 
-        // ═════════════════════════════════════════════════════════════
-        // Início: quem está logado? (o servidor decide; 401 volta ao login)
-        // ═════════════════════════════════════════════════════════════
-        document.addEventListener('DOMContentLoaded', () => {
-            filtroData.value = dataDeHoje();
-            document.getElementById('bloqData').value = dataDeHoje();
-            filtroData.addEventListener('change', atualizarTela);
-            document.getElementById('btnHoje').addEventListener('click', () => { filtroData.value = dataDeHoje(); atualizarTela(); });
-            document.getElementById('btnDiaAnterior').addEventListener('click', () => mudarDia(-1));
-            document.getElementById('btnDiaSeguinte').addEventListener('click', () => mudarDia(1));
+    function mudarStatus(item, novoStatus) {
+        const hora = item.dataHora.split('T')[1];
+        const texto = item.pet + ' (' + item.tutor + ') · ' + item.servico + ' às ' + hora + ': de "' + item.status + '" para "' + novoStatus + '".';
+        const perigo = novoStatus === 'Cancelado';
+        confirmar(perigo ? 'Cancelar agendamento?' : 'Mudar status?', texto, perigo ? 'Sim, cancelar' : 'Confirmar', perigo)
+            .then(ok => {
+                if (!ok) return;
+                api('/api/agendamento/' + item.id + '/status', { method: 'PUT', body: { status: novoStatus } })
+                    .then(() => { avisar('Status atualizado para "' + novoStatus + '".', false); atualizarTela(); })
+                    .catch(e => avisar(e.message, true));
+            });
+    }
 
-            api('/api/eu').then(u => {
-                eu = u;
-                document.getElementById('displayNome').textContent = 'Olá, ' + u.nome + ' (' + u.perfil + ')';
-                if (u.perfil === 'Administrador') {
-                    document.querySelectorAll('.so-admin').forEach(e => { e.hidden = false; });
-                }
-                atualizarTela();
-            }).catch(() => {});
+    function atualizarTela() { carregarIndicadores(); buscarAgendamentos(); }
+
+    function mudarDia(dias) {
+        const d = new Date(filtroData.value + 'T12:00');
+        d.setDate(d.getDate() + dias);
+        filtroData.value = isoDe(d);
+        atualizarTela();
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // Histórico do tutor
+    // ═════════════════════════════════════════════════════════════
+    document.getElementById('formHistorico').addEventListener('submit', e => {
+        e.preventDefault();
+        const tel = document.getElementById('telHistorico').value;
+        const box = document.getElementById('resultadoHistorico');
+        api('/api/agendamentos?telefone=' + encodeURIComponent(tel)).then(lista => {
+            box.hidden = false;
+            box.replaceChildren();
+            if (lista.length === 0) { box.appendChild(el('p', 'mb-0', 'Nenhum atendimento encontrado para este telefone.')); return; }
+            box.appendChild(el('h3', 'mb-3', lista[0].tutor + ' · ' + lista.length + ' atendimento(s)'));
+            const t = el('table', 'table table-hover table-pa');
+            const corpo = cabecalho(t, ['Data', 'Pet', 'Serviço', 'Responsável', 'Status']);
+            lista.forEach(a => {
+                const tr = el('tr');
+                [dataBR(a.dataHora), a.pet, a.servico, a.responsavel || 'Equipe'].forEach(v => tr.appendChild(el('td', null, v)));
+                const td = el('td'); td.appendChild(el('span', 'status status-' + a.status.split(' ')[0], a.status)); tr.appendChild(td);
+                corpo.appendChild(tr);
+            });
+            box.appendChild(t);
+        }).catch(err => avisar(err.message, true));
+    });
+
+    // ═════════════════════════════════════════════════════════════
+    // Funcionários (UC08)
+    // ═════════════════════════════════════════════════════════════
+    function botaoTabela(texto, ic, classe, acao) {
+        const b = el('button', 'btn btn-sm ' + classe);
+        b.type = 'button';
+        b.append(icone(ic, 'me-1'), texto);
+        b.addEventListener('click', acao);
+        return b;
+    }
+    function situacao(ativo, sim, nao) {
+        return el('span', 'badge rounded-pill ' + (ativo ? 'text-bg-success' : 'text-bg-secondary'), ativo ? sim : nao);
+    }
+
+    function carregarFuncionarios() {
+        return api('/api/admin/funcionarios').then(lista => {
+            funcionarios = lista;
+            const t = document.getElementById('tabelaFuncionarios');
+            t.replaceChildren();
+            const corpo = cabecalho(t, ['Nome', 'Login', 'Perfil', 'Situação', 'Ações']);
+            lista.forEach(f => {
+                const tr = el('tr', f.ativo ? '' : 'inativo');
+                [f.nome, f.login, f.perfil].forEach(v => tr.appendChild(el('td', null, v)));
+                const tdS = el('td'); tdS.appendChild(situacao(f.ativo, 'Ativo', 'Desligado')); tr.appendChild(tdS);
+                const td = el('td');
+                td.appendChild(botaoTabela('Editar', 'pencil', 'btn-outline-primary', () => editarFuncionario(f)));
+                tr.appendChild(td);
+                corpo.appendChild(tr);
+            });
+            preencherSelectsFuncionarios();
+        }).catch(e => avisar(e.message, true));
+    }
+
+    function preencherSelectsFuncionarios() {
+        const ativos = funcionarios.filter(f => f.ativo);
+        const resp = document.getElementById('servResponsavel');
+        const valorResp = resp.value;
+        resp.replaceChildren(new Option('Equipe (sem responsável)', ''));
+        ativos.forEach(f => resp.appendChild(new Option(f.nome + ' (' + f.perfil + ')', f.id)));
+        resp.value = valorResp;
+        const bloq = document.getElementById('bloqFuncionario');
+        bloq.replaceChildren(new Option('Pet shop inteiro', ''));
+        ativos.forEach(f => bloq.appendChild(new Option('Só ' + f.nome, f.id)));
+    }
+
+    function limparFuncionario() {
+        document.getElementById('formFuncionario').reset();
+        document.getElementById('funcId').value = '';
+        document.getElementById('tituloFormFuncionario').textContent = 'Novo funcionário';
+        document.getElementById('rotuloSenha').textContent = 'Senha inicial (mín. 6 caracteres)';
+        document.getElementById('funcSenha').required = true;
+    }
+
+    function editarFuncionario(f) {
+        document.getElementById('funcId').value = f.id;
+        document.getElementById('funcNome').value = f.nome;
+        document.getElementById('funcTelefone').value = f.telefone;
+        document.getElementById('funcEmail').value = f.email;
+        document.getElementById('funcLogin').value = f.login;
+        document.getElementById('funcPerfil').value = f.perfil;
+        document.getElementById('funcAtivo').checked = !!f.ativo;
+        document.getElementById('funcSenha').value = '';
+        document.getElementById('funcSenha').required = false;
+        document.getElementById('rotuloSenha').textContent = 'Nova senha (deixe em branco para manter)';
+        document.getElementById('tituloFormFuncionario').textContent = 'Editar: ' + f.nome;
+        document.getElementById('funcNome').focus();
+    }
+
+    document.getElementById('btnLimparFuncionario').addEventListener('click', limparFuncionario);
+    document.getElementById('formFuncionario').addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('funcId').value;
+        const corpo = {
+            nome: document.getElementById('funcNome').value,
+            telefone: document.getElementById('funcTelefone').value,
+            email: document.getElementById('funcEmail').value,
+            login: document.getElementById('funcLogin').value,
+            perfil: document.getElementById('funcPerfil').value,
+            ativo: document.getElementById('funcAtivo').checked
+        };
+        const senha = document.getElementById('funcSenha').value;
+        if (id) corpo.novaSenha = senha; else corpo.senha = senha;
+        api(id ? '/api/admin/funcionarios/' + id : '/api/admin/funcionarios', { method: id ? 'PUT' : 'POST', body: corpo })
+            .then(r => { avisar(r.mensagem, false); limparFuncionario(); carregarFuncionarios(); })
+            .catch(err => avisar(err.message, true));
+    });
+
+    // ═════════════════════════════════════════════════════════════
+    // Serviços (UC07)
+    // ═════════════════════════════════════════════════════════════
+    function carregarServicos() {
+        return api('/api/admin/servicos').then(lista => {
+            const t = document.getElementById('tabelaServicos');
+            t.replaceChildren();
+            const corpo = cabecalho(t, ['Serviço', 'Preço', 'Duração', 'Responsável', 'Situação', 'Ações']);
+            lista.forEach(s => {
+                const tr = el('tr', s.ativo ? '' : 'inativo');
+                [(s.icone || '🐾') + ' ' + s.descricao, dinheiro(s.preco), s.duracaoMinutos + ' min', s.responsavel || 'Equipe']
+                    .forEach(v => tr.appendChild(el('td', null, v)));
+                const tdS = el('td'); tdS.appendChild(situacao(s.ativo, 'Ativo', 'Desativado')); tr.appendChild(tdS);
+                const td = el('td');
+                td.appendChild(botaoTabela('Editar', 'pencil', 'btn-outline-primary', () => editarServico(s)));
+                tr.appendChild(td);
+                corpo.appendChild(tr);
+            });
+        }).catch(e => avisar(e.message, true));
+    }
+
+    function limparServico() {
+        document.getElementById('formServico').reset();
+        document.getElementById('servId').value = '';
+        document.getElementById('tituloFormServico').textContent = 'Novo serviço';
+    }
+
+    function editarServico(s) {
+        document.getElementById('servId').value = s.id;
+        document.getElementById('servDescricao').value = s.descricao;
+        document.getElementById('servDetalhes').value = s.detalhes || '';
+        document.getElementById('servPreco').value = s.preco;
+        document.getElementById('servDuracao').value = s.duracaoMinutos;
+        const ic = document.getElementById('servIcone');
+        if (s.icone && ![...ic.options].some(o => o.value === s.icone)) ic.appendChild(new Option(s.icone, s.icone));
+        ic.value = s.icone || '🐾';
+        document.getElementById('servResponsavel').value = s.idResponsavel || '';
+        document.getElementById('servAtivo').checked = !!s.ativo;
+        document.getElementById('tituloFormServico').textContent = 'Editar: ' + s.descricao;
+        document.getElementById('servDescricao').focus();
+    }
+
+    document.getElementById('btnLimparServico').addEventListener('click', limparServico);
+    document.getElementById('formServico').addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('servId').value;
+        const corpo = {
+            descricao: document.getElementById('servDescricao').value,
+            detalhes: document.getElementById('servDetalhes').value,
+            icone: document.getElementById('servIcone').value,
+            preco: document.getElementById('servPreco').value,
+            duracaoMinutos: document.getElementById('servDuracao').value,
+            idResponsavel: document.getElementById('servResponsavel').value,
+            ativo: document.getElementById('servAtivo').checked
+        };
+        api(id ? '/api/admin/servicos/' + id : '/api/admin/servicos', { method: id ? 'PUT' : 'POST', body: corpo })
+            .then(r => { avisar(r.mensagem, false); limparServico(); carregarServicos(); })
+            .catch(err => avisar(err.message, true));
+    });
+
+    // ═════════════════════════════════════════════════════════════
+    // Bloqueios (UC10)
+    // ═════════════════════════════════════════════════════════════
+    function carregarBloqueios() {
+        return api('/api/admin/bloqueios').then(lista => {
+            const t = document.getElementById('tabelaBloqueios');
+            t.replaceChildren();
+            if (lista.length === 0) {
+                const tb = el('tbody'); const tr = el('tr'); tr.appendChild(el('td', 'text-suave', 'Nenhum bloqueio futuro.')); tb.appendChild(tr); t.appendChild(tb);
+                return;
+            }
+            const corpo = cabecalho(t, ['Início', 'Fim', 'Quem', 'Motivo', 'Ações']);
+            lista.forEach(b => {
+                const tr = el('tr');
+                [dataBR(b.inicio), dataBR(b.fim), b.profissional || 'Pet shop inteiro', b.motivo].forEach(v => tr.appendChild(el('td', null, v)));
+                const td = el('td');
+                td.appendChild(botaoTabela('Remover', 'trash', 'btn-outline-danger', () => confirmar('Remover bloqueio?', b.motivo + ' · ' + dataBR(b.inicio) + ' até ' + dataBR(b.fim) + '. Os horários voltam a ficar livres.', 'Remover', true)
+                    .then(ok => ok && api('/api/admin/bloqueios/' + b.id, { method: 'DELETE' })
+                        .then(r => { avisar(r.mensagem, false); carregarBloqueios(); })
+                        .catch(err => avisar(err.message, true)))));
+                tr.appendChild(td);
+                corpo.appendChild(tr);
+            });
+        }).catch(e => avisar(e.message, true));
+    }
+
+    document.getElementById('bloqDiaInteiro').addEventListener('change', e => {
+        document.getElementById('bloqHoras').hidden = e.target.checked;
+    });
+    document.getElementById('formBloqueio').addEventListener('submit', e => {
+        e.preventDefault();
+        api('/api/admin/bloqueios', { method: 'POST', body: {
+            data: document.getElementById('bloqData').value,
+            diaInteiro: document.getElementById('bloqDiaInteiro').checked,
+            horaInicio: document.getElementById('bloqInicio').value,
+            horaFim: document.getElementById('bloqFim').value,
+            idFuncionario: document.getElementById('bloqFuncionario').value,
+            motivo: document.getElementById('bloqMotivo').value
+        }}).then(r => { avisar(r.mensagem, false); document.getElementById('bloqMotivo').value = ''; carregarBloqueios(); })
+          .catch(err => avisar(err.message, true));
+    });
+
+    // ═════════════════════════════════════════════════════════════
+    // Minha senha e sair
+    // ═════════════════════════════════════════════════════════════
+    const modalSenha = new bootstrap.Modal(document.getElementById('dialogoSenha'));
+    document.getElementById('btnMinhaSenha').addEventListener('click', () => {
+        document.getElementById('formSenha').reset();
+        document.getElementById('erroSenha').textContent = '';
+        modalSenha.show();
+    });
+    document.getElementById('dialogoSenha').addEventListener('shown.bs.modal', () => document.getElementById('senhaAtual').focus());
+    document.getElementById('formSenha').addEventListener('submit', e => {
+        e.preventDefault();
+        const nova = document.getElementById('senhaNova').value;
+        if (nova !== document.getElementById('senhaNova2').value) {
+            document.getElementById('erroSenha').textContent = 'As duas senhas novas não são iguais.';
+            return;
+        }
+        api('/api/minha-senha', { method: 'PUT', body: { senhaAtual: document.getElementById('senhaAtual').value, novaSenha: nova } })
+            .then(r => { modalSenha.hide(); avisar(r.mensagem, false); })
+            .catch(err => { document.getElementById('erroSenha').textContent = err.message; });
+    });
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+        fetch('/api/logout', { method: 'POST' }).finally(() => {
+            sessionStorage.removeItem('usuarioLogado');
+            window.location.href = 'login.html';
         });
-    </script>
+    });
+
+    // ═════════════════════════════════════════════════════════════
+    // Início: quem está logado? (o servidor decide; 401 volta ao login)
+    // ═════════════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+        filtroData.value = dataDeHoje();
+        document.getElementById('bloqData').value = dataDeHoje();
+        filtroData.addEventListener('change', atualizarTela);
+        document.getElementById('btnHoje').addEventListener('click', () => { filtroData.value = dataDeHoje(); atualizarTela(); });
+        document.getElementById('btnDiaAnterior').addEventListener('click', () => mudarDia(-1));
+        document.getElementById('btnDiaSeguinte').addEventListener('click', () => mudarDia(1));
+
+        api('/api/eu').then(u => {
+            eu = u;
+            document.getElementById('displayNome').textContent = 'Olá, ' + u.nome;
+            document.getElementById('displayPerfil').textContent = u.perfil;
+            document.getElementById('avatarInicial').textContent = (u.nome || '?').replace(/^(Dra?\.?\s+)/i, '').charAt(0).toUpperCase();
+            if (u.perfil === 'Administrador') {
+                document.querySelectorAll('.so-admin').forEach(e => { e.hidden = false; });
+            }
+            atualizarTela();
+        }).catch(() => {});
+    });
+</script>
 </body>
 </html>

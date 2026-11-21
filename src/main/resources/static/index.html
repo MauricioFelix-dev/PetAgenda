@@ -1,1021 +1,604 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232D5016%27/%3E%3Cg fill=%27%23F2B544%27%3E%3Cellipse cx=%2732%27 cy=%2740%27 rx=%2711%27 ry=%279.5%27/%3E%3Ccircle cx=%2718%27 cy=%2728%27 r=%275.5%27/%3E%3Ccircle cx=%2726.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2737.5%27 cy=%2718%27 r=%275.5%27/%3E%3Ccircle cx=%2746%27 cy=%2728%27 r=%275.5%27/%3E%3C/g%3E%3C/svg%3E">
-  <meta name="description" content="Agende banho, tosa e consultas sem ligar: veja os horários livres, quem vai atender e receba um código para consultar ou cancelar."/>
-  <meta name="theme-color" content="#2D5016"/>
-  <title>PetAgenda – Agendamentos para Pet Shops</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Agende banho, tosa e consultas sem ligar: veja os horários livres, quem vai atender e receba um código para consultar ou cancelar.">
+  <meta name="theme-color" content="#2D5016">
+  <title>PetAgenda – Agendamento online para o seu pet</title>
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
+  <!-- Bootstrap 5.3 e Bootstrap Icons servidos pelo próprio sistema (funciona sem internet) -->
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="css/petagenda.css">
   <script>document.documentElement.classList.add('js');</script>
-
-  <style>
-    /* ── RESET & VARIÁVEIS ─────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --cream:   #FAF6EF;
-      --warm:    #F2E8D9;
-      --green:   #2D5016;
-      --green2:  #4A7C2F;
-      --amber:   #C8861A;
-      --amber2:  #E8A030;
-      /* Correção de acessibilidade (WCAG 1.4.3): o laranja original (#C8861A) tem
-         contraste de só 2,83:1 sobre o creme. Para TEXTO usamos este tom mais
-         escuro (5,50:1); o laranja original fica para fundos e detalhes. */
-      --amber-texto: #8A5A00;
-      --amber-claro: #F2B860; /* texto laranja sobre o verde: 5,20:1 */
-      --brown:   #6B4226;
-      --text:    #2A2318;
-      --muted:   #7A6A58;
-      --white:   #FFFFFF;
-      --shadow:  0 8px 40px rgba(45,80,22,.12);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--cream);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ── ANIMAÇÕES ─────────────────────────────────────────── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(32px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes floatPaw {
-      0%,100% { transform: translateY(0) rotate(-5deg); }
-      50%      { transform: translateY(-12px) rotate(5deg); }
-    }
-    @keyframes pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(200,134,26,.4); }
-      50%      { box-shadow: 0 0 0 14px rgba(200,134,26,0); }
-    }
-
-    /* Só esconde para animar se o JavaScript estiver ativo (classe "js" no <html>).
-       Sem JS, o conteúdo continua visível. */
-    .js .reveal {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity .7s ease, transform .7s ease;
-    }
-    .js .reveal.visible {
-      opacity: 1;
-      transform: none;
-    }
-
-    /* ── NAV ───────────────────────────────────────────────── */
-    nav {
-      position: fixed; top: 0; width: 100%; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 6vw;
-      background: rgba(250,246,239,.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(45,80,22,.08);
-      transition: box-shadow .3s;
-    }
-    nav.scrolled { box-shadow: var(--shadow); }
-
-    .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      font-weight: 900;
-      color: var(--green);
-      letter-spacing: -.5px;
-    }
-    .logo span { color: var(--amber); }
-
-    .nav-links {
-      display: flex; gap: 2rem; list-style: none; align-items: center;
-    }
-    .nav-links a {
-      text-decoration: none;
-      color: var(--muted);
-      font-weight: 500;
-      font-size: .92rem;
-      letter-spacing: .3px;
-      transition: color .2s;
-    }
-    .nav-links a:hover { color: var(--green); }
-
-    /* NOVO BOTÃO DA ÁREA RESTRITA */
-    .btn-login {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--green) !important;
-      font-weight: 700 !important;
-      border: 1px solid rgba(45,80,22,0.2);
-      padding: 0.4rem 1rem !important;
-      border-radius: 50px;
-      transition: all 0.2s;
-    }
-    .btn-login:hover {
-      background: rgba(45,80,22,0.05);
-      border-color: var(--green);
-    }
-
-    .btn-nav {
-      background: var(--green);
-      color: var(--white) !important;
-      padding: .5rem 1.3rem;
-      border-radius: 50px;
-      transition: background .2s, transform .2s !important;
-    }
-    .btn-nav:hover { background: var(--green2) !important; transform: scale(1.04); }
-
-    /* ── HERO ──────────────────────────────────────────────── */
-    #hero {
-      min-height: min(100vh, 860px);
-      display: grid; align-items: center;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-      gap: 3rem;
-      padding: 120px 6vw 80px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-bg {
-      position: absolute; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse 70% 60% at 70% 40%, rgba(74,124,47,.13) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 50% at 20% 70%, rgba(200,134,26,.09) 0%, transparent 70%),
-        var(--cream);
-    }
-
-    .hero-content {
-      position: relative; z-index: 1;
-      max-width: 580px;
-      animation: fadeUp .9s ease both;
-    }
-
-    .badge {
-      display: inline-block;
-      background: var(--warm);
-      border: 1px solid rgba(200,134,26,.3);
-      color: var(--amber-texto);
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: .35rem 1rem;
-      border-radius: 50px;
-      margin-bottom: 1.4rem;
-    }
-
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.4rem, 5vw, 3.8rem);
-      font-weight: 900;
-      line-height: 1.1;
-      color: var(--green);
-      margin-bottom: 1.2rem;
-    }
-    h1 em {
-      font-style: normal;
-      color: var(--amber-texto);
-      position: relative;
-    }
-    h1 em::after {
-      content: '';
-      position: absolute; left: 0; bottom: -3px;
-      width: 100%; height: 3px;
-      background: var(--amber2);
-      border-radius: 2px;
-    }
-
-    .hero-sub {
-      font-size: 1.08rem;
-      color: var(--muted);
-      max-width: 440px;
-      margin-bottom: 2.2rem;
-    }
-
-    .hero-cta {
-      display: flex; gap: 1rem; flex-wrap: wrap;
-    }
-
-    .btn-primary {
-      background: var(--green);
-      color: var(--white);
-      padding: .85rem 2.2rem;
-      border-radius: 50px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: .95rem;
-      letter-spacing: .3px;
-      border: none; cursor: pointer;
-      animation: pulse 2.8s ease infinite;
-      transition: background .2s, transform .15s;
-    }
-    .btn-primary:hover { background: var(--green2); transform: scale(1.04); }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--green);
-      padding: .85rem 2.2rem;
-      border-radius: 50px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: .95rem;
-      border: 2px solid var(--green);
-      transition: all .2s;
-    }
-    .btn-secondary:hover {
-      background: var(--green);
-      color: var(--white);
-    }
-
-    /* Antes ficava em position:absolute com translateY(-50%), mas a animação
-       fadeUp sobrescrevia o transform e o cartão descia até ser cortado em
-       telas baixas (ex.: projetor 1366x768). Agora é uma coluna do grid. */
-    .hero-visual {
-      position: relative; z-index: 1;
-      justify-self: end;
-      width: 100%; max-width: 470px;
-      animation: fadeUp 1.1s .3s ease both;
-    }
-    .paw-svg { width: 100%; height: 100%; fill: var(--amber); opacity: .85; }
-    .linha-exemplo { display: flex; justify-content: space-between; align-items: center; gap: .8rem;
-      margin-top: .8rem; padding: .7rem 1rem; border: 1px dashed rgba(45,80,22,.25); border-radius: 12px; font-size: .85rem; color: #5A4D3E; }
-    .linha-exemplo code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; letter-spacing: 3px; color: var(--green); font-size: 1rem; }
-
-    .hero-card {
-      background: var(--white);
-      border-radius: 24px;
-      padding: 2rem;
-      box-shadow: var(--shadow);
-      position: relative;
-    }
-
-    .paw-float {
-      position: absolute;
-      font-size: 2.8rem;
-      animation: floatPaw 3s ease-in-out infinite;
-    }
-    .paw1 { top: -20px; right: 24px; width: 44px; height: 44px; animation-delay: 0s; }
-    .paw2 { bottom: -16px; left: 20px; width: 30px; height: 30px; animation-delay: 1s; }
-
-    .stat-row {
-      display: flex; gap: 1.2rem; margin-top: 1.2rem;
-    }
-    .stat {
-      flex: 1;
-      background: var(--warm);
-      border-radius: 14px;
-      padding: .9rem;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.7rem;
-      font-weight: 700;
-      color: var(--green);
-    }
-    .stat-lbl {
-      font-size: .72rem;
-      color: #6B5D4D; /* --muted sobre --warm dava 4,30:1; este dá 5,25:1 */
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-
-    /* ── SECTION TITLES ────────────────────────────────────── */
-    .section-label {
-      display: block;
-      font-size: .75rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--amber-texto);
-      margin-bottom: .6rem;
-    }
-    h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-      font-weight: 700;
-      color: var(--green);
-      line-height: 1.2;
-      margin-bottom: 1rem;
-    }
-    .section-sub {
-      color: var(--muted);
-      max-width: 480px;
-      font-size: .97rem;
-    }
-
-    section { padding: 96px 6vw; }
-
-    /* ── SERVIÇOS ──────────────────────────────────────────── */
-    #servicos { background: var(--white); }
-
-    .section-head { margin-bottom: 3.5rem; }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.6rem;
-    }
-
-    .card {
-      background: var(--cream);
-      border-radius: 20px;
-      padding: 2rem 1.8rem;
-      border: 1px solid rgba(45,80,22,.07);
-      transition: transform .25s, box-shadow .25s;
-      display: flex; flex-direction: column;
-    }
-    .card:hover {
-      transform: translateY(-6px);
-      box-shadow: var(--shadow);
-    }
-
-    .card-icon {
-      font-size: 2rem;
-      margin-bottom: 1.1rem;
-      width: 64px; height: 64px; border-radius: 18px;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--white);
-      box-shadow: 0 4px 14px rgba(45,80,22,.08);
-    }
-
-    .card h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.25rem;
-      color: var(--green);
-      margin-bottom: .5rem;
-    }
-    .card p {
-      color: var(--muted);
-      font-size: .9rem;
-      line-height: 1.6;
-    }
-    .card-price {
-      margin-top: auto; padding-top: 1.2rem;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--amber-texto);
-      font-family: 'Playfair Display', serif;
-    }
-    .card-price span {
-      font-size: .78rem;
-      font-weight: 400;
-      color: var(--muted);
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    .card-responsavel {
-      margin-top: .6rem;
-      font-size: .85rem;
-      color: #6B5D4D;
-    }
-    .card-responsavel strong { color: var(--green); }
-    .card-carregando { color: var(--muted); }
-
-    /* Quem atende (abaixo do select de serviço) */
-    .dica-responsavel {
-      font-size: .85rem;
-      color: rgba(255,255,255,.9);
-      min-height: 1.2em;
-      margin-top: -.4rem;
-    }
-    .dica-responsavel strong { color: var(--amber-claro); }
-
-    /* Caixa de confirmação com o código do agendamento */
-    .confirmacao {
-      background: var(--cream);
-      color: var(--text);
-      border-radius: 18px;
-      padding: 1.4rem 1.6rem;
-      border-left: 6px solid var(--amber);
-    }
-    .confirmacao[hidden] { display: none; }
-    .confirmacao h3 { font-family: 'Playfair Display', serif; color: var(--green); margin-bottom: .4rem; }
-    .confirmacao .codigo {
-      display: inline-block;
-      font-family: ui-monospace, Consolas, monospace;
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: 4px;
-      background: var(--white);
-      border: 2px dashed var(--amber-texto);
-      border-radius: 10px;
-      padding: .2rem .8rem;
-      margin: .4rem 0;
-      color: var(--green);
-    }
-    .confirmacao a { color: var(--green); font-weight: 700; }
-    .confirmacao button {
-      margin-top: .8rem; background: var(--green); color: var(--white); border: none;
-      padding: .6rem 1.2rem; border-radius: 50px; font-weight: 600; cursor: pointer; font-family: inherit;
-    }
-
-    /* ── COMO FUNCIONA ─────────────────────────────────────── */
-    #como-funciona { background: var(--cream); }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-top: 3rem;
-    }
-
-    .step {
-      text-align: center;
-      padding: 1.5rem;
-    }
-
-    .step-num {
-      width: 52px; height: 52px;
-      background: var(--green);
-      color: var(--white);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin: 0 auto 1.2rem;
-    }
-
-    .step h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem;
-      color: var(--green);
-      margin-bottom: .5rem;
-    }
-    .step p { color: var(--muted); font-size: .88rem; }
-
-    /* ── AGENDAMENTO ───────────────────────────────────────── */
-    #agendamento {
-      background: var(--green);
-      color: var(--white);
-    }
-
-    #agendamento .section-label { color: var(--amber-claro); }
-    #agendamento h2 { color: var(--white); }
-    #agendamento .section-sub { color: rgba(255,255,255,.7); }
-
-    .form-wrap {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-      margin-top: 3rem;
-      align-items: start;
-    }
-    /* Correção (teste CT-13): por padrão um item de grid não encolhe abaixo do
-       tamanho do seu conteúdo. O texto longo das opções do <select> (ex.:
-       "Consulta Veterinária – R$ 90,00 (30 min)") alargava o formulário e criava
-       rolagem horizontal no celular. min-width: 0 permite que ele encolha. */
-    .form-wrap > * { min-width: 0; }
-    form select, form input, form textarea { max-width: 100%; }
-
-    .form-info { position: sticky; top: 110px; }
-    .info-extra { margin-top: 2rem; padding: 1.2rem 1.4rem; border-radius: 16px;
-      background: rgba(0,0,0,.14); border: 1px solid rgba(255,255,255,.15); display: grid; gap: .7rem; font-size: .92rem; }
-    .info-extra a { color: var(--amber-claro); font-weight: 600; }
-    .form-info h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem;
-      margin-bottom: 1.4rem;
-      color: var(--amber2);
-    }
-
-    .info-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: .9rem;
-    }
-    .info-list li {
-      display: flex; align-items: center; gap: .8rem;
-      color: rgba(255,255,255,.85);
-      font-size: .93rem;
-    }
-    .info-list li::before {
-      content: '✓';
-      background: var(--amber);
-      color: var(--white);
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .75rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    form {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 24px;
-      padding: 2.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.1rem;
-    }
-
-    form[hidden] { display: none; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-    label {
-      display: flex;
-      flex-direction: column;
-      gap: .4rem;
-      font-size: .83rem;
-      font-weight: 600;
-      letter-spacing: .3px;
-      color: rgba(255,255,255,.75);
-      text-transform: uppercase;
-    }
-
-    input, select, textarea {
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.55); /* borda visível: 4,03:1 (WCAG 1.4.11) */
-      border-radius: 10px;
-      padding: .75rem 1rem;
-      color: var(--white);
-      font-family: 'DM Sans', sans-serif;
-      font-size: .95rem;
-      outline: none;
-      transition: border-color .2s, background .2s;
-    }
-    input::placeholder, textarea::placeholder { color: rgba(255,255,255,.6); }
-    input:focus-visible, select:focus-visible, textarea:focus-visible,
-    .btn-form:focus-visible, .consentimento input:focus-visible {
-      outline: 3px solid var(--amber-claro);
-      outline-offset: 2px;
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--amber2);
-      background: rgba(255,255,255,.15);
-    }
-    select option { background: var(--green); color: var(--white); }
-    textarea { resize: vertical; min-height: 90px; }
-
-    .btn-form {
-      background: #9A6200; /* branco sobre #C8861A = 3,05:1; sobre #9A6200 = 5,10:1 */
-      color: var(--white);
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: 50px;
-      font-weight: 700;
-      font-size: 1rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background .2s, transform .15s;
-      margin-top: .5rem;
-    }
-    .btn-form:hover { background: #7D5000; transform: scale(1.02); }
-    .btn-form:disabled { opacity: .7; cursor: wait; transform: none; }
-
-    /* Aviso de privacidade e caixa de ciência (LGPD) */
-    .aviso-privacidade {
-      font-size: .85rem;
-      color: rgba(255,255,255,.85);
-      background: rgba(0,0,0,.15);
-      border-radius: 10px;
-      padding: .8rem 1rem;
-      line-height: 1.5;
-    }
-    .aviso-privacidade a, .consentimento a { color: var(--amber-claro); }
-    label.consentimento {
-      flex-direction: row;
-      align-items: flex-start;
-      gap: .6rem;
-      text-transform: none;
-      letter-spacing: 0;
-      font-weight: 500;
-      font-size: .9rem;
-      color: rgba(255,255,255,.9);
-    }
-    .consentimento input { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; accent-color: var(--amber); }
-
-    /* TOAST */
-    #toast {
-      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
-      background: var(--green2);
-      color: var(--white);
-      padding: 1rem 1.6rem;
-      border-radius: 14px;
-      font-weight: 600;
-      box-shadow: 0 8px 30px rgba(0,0,0,.25);
-      max-width: min(440px, calc(100vw - 2rem));
-      line-height: 1.45;
-      transform: translateY(160px);
-      opacity: 0;
-      transition: all .4s ease;
-    }
-    #toast.show { transform: none; opacity: 1; }
-    #toast.erro { background: #b3261e; }
-
-    .tag-exemplo {
-      display: inline-block;
-      font-size: .7rem;
-      font-weight: 700;
-      letter-spacing: .5px;
-      text-transform: uppercase;
-      color: var(--amber-texto);
-      border: 1px dashed var(--amber-texto);
-      border-radius: 6px;
-      padding: .1rem .5rem;
-      margin-bottom: .8rem;
-    }
-
-    /* ── FOOTER ────────────────────────────────────────────── */
-    footer {
-      background: var(--text);
-      color: rgba(255,255,255,.6);
-      padding: 3rem 6vw;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-    .footer-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.4rem;
-      font-weight: 900;
-      color: var(--white);
-    }
-    .footer-logo span { color: var(--amber2); }
-    footer p { font-size: .85rem; }
-    .footer-links { display: flex; gap: .6rem 1.5rem; flex-wrap: wrap; justify-content: center; }
-    .footer-links a {
-      color: rgba(255,255,255,.55);
-      text-decoration: none;
-      font-size: .85rem;
-      transition: color .2s;
-    }
-    .footer-links a:hover { color: var(--amber2); }
-
-    /* ── MOVIMENTO REDUZIDO ──────────────────────────────────
-       Quem ativou "reduzir movimento" no sistema (Windows, Android, iOS)
-       não vê pulso, patas flutuando nem rolagem suave (WCAG 2.2.2 / 2.3.3). */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation: none !important;
-        transition: none !important;
-      }
-      html { scroll-behavior: auto; }
-      .js .reveal { opacity: 1; transform: none; }
-    }
-
-    /* ── RESPONSIVO ────────────────────────────────────────── */
-    .menu-toggle { display: none; }
-    @media (max-width: 900px) {
-      #hero { grid-template-columns: 1fr; min-height: auto; padding-top: 130px; }
-      .hero-visual { display: none; }
-      .form-info { position: static; }
-      .menu-toggle {
-        display: flex; align-items: center; gap: .5rem;
-        background: var(--white); color: var(--green); font-weight: 700; font-family: inherit; font-size: .9rem;
-        border: 1px solid rgba(45,80,22,.25); border-radius: 50px; padding: .45rem 1rem; cursor: pointer;
-      }
-      .menu-barras, .menu-barras::before, .menu-barras::after {
-        display: block; width: 16px; height: 2px; background: var(--green); border-radius: 2px; position: relative; content: '';
-      }
-      .menu-barras::before { position: absolute; top: -5px; }
-      .menu-barras::after { position: absolute; top: 5px; }
-      nav.menu-aberto .nav-links {
-        display: flex; flex-direction: column; align-items: stretch; gap: .4rem;
-        position: absolute; top: 100%; left: 0; right: 0;
-        background: var(--cream); padding: 1rem 6vw 1.4rem; box-shadow: var(--shadow);
-      }
-      nav.menu-aberto .nav-links a { display: block; padding: .7rem .4rem; font-size: 1rem; }
-      nav.menu-aberto .nav-links .btn-login, nav.menu-aberto .nav-links .btn-nav { justify-content: center; text-align: center; }
-      .form-wrap { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
-      #toast { left: 1rem; right: 1rem; bottom: 1rem; }
-      footer { flex-direction: column; text-align: center; }
-    }
-  </style>
 </head>
 <body>
+<a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
 
-<nav id="navbar" aria-label="Menu principal">
-  <div class="logo">Pet<span>Agenda</span></div>
-  <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="menuLinks">
-    <span class="menu-barras" aria-hidden="true"></span> Menu
-  </button>
-  <ul class="nav-links" id="menuLinks">
-    <li><a href="#servicos">Serviços</a></li>
-    <li><a href="#como-funciona">Como funciona</a></li>
-    <li><a href="meus-agendamentos.html">Meus agendamentos</a></li>
-    <li><a href="login.html" class="btn-login"><span aria-hidden="true">🔒</span> Área Restrita</a></li>
-    <li><a href="#agendamento" class="btn-nav">Agendar agora</a></li>
-  </ul>
+<!-- ═══════════ BARRA DE INFORMAÇÕES ═══════════ -->
+<div class="barra-topo py-2 d-none d-md-block">
+  <div class="container d-flex justify-content-between align-items-center gap-3">
+    <div class="d-flex gap-4">
+      <span><i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i> Timbiras – MA</span>
+      <span><i class="bi bi-clock-fill me-1" aria-hidden="true"></i> Atendimento das 08:00 às 18:00</span>
+      <span><i class="bi bi-calendar2-check-fill me-1" aria-hidden="true"></i> Agendamento online a qualquer hora</span>
+    </div>
+    <a href="login.html"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i> Área da equipe</a>
+  </div>
+</div>
+
+<!-- ═══════════ MENU (navbar do Bootstrap: vira menu sanduíche no celular) ═══════════ -->
+<nav class="navbar navbar-expand-lg navbar-pa sticky-top" aria-label="Menu principal">
+  <div class="container">
+    <a class="marca" href="#inicio">
+      <span class="marca-icone" aria-hidden="true"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></span>
+      <span class="marca-texto">Pet<span>Agenda</span></span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuLinks" aria-controls="menuLinks" aria-expanded="false" aria-label="Abrir menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menuLinks">
+      <ul class="navbar-nav mx-auto my-3 my-lg-0 gap-lg-1">
+        <li class="nav-item"><a class="nav-link" href="#servicos">Serviços</a></li>
+        <li class="nav-item"><a class="nav-link" href="#vantagens">Vantagens</a></li>
+        <li class="nav-item"><a class="nav-link" href="#como-funciona">Como funciona</a></li>
+        <li class="nav-item"><a class="nav-link" href="#duvidas">Dúvidas</a></li>
+        <li class="nav-item"><a class="nav-link" href="meus-agendamentos.html">Meus agendamentos</a></li>
+      </ul>
+      <div class="d-flex flex-column flex-lg-row gap-2 pb-3 pb-lg-0">
+        <a href="login.html" class="btn btn-outline-primary btn-sm d-lg-none"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i> Área da equipe</a>
+        <a href="#agendamento" class="btn btn-primary"><i class="bi bi-calendar-plus me-1" aria-hidden="true"></i> Agendar agora</a>
+      </div>
+    </div>
+  </div>
 </nav>
 
 <main id="conteudo">
 
-<section id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-content">
-    <div class="badge"><span aria-hidden="true">🐾</span> Pet Shop em Timbiras – MA</div>
-    <h1>Seu pet merece o melhor <em>cuidado</em></h1>
-    <p class="hero-sub">
-      Agende banho, tosa, consultas veterinárias e muito mais de forma
-      rápida, simples e sem conflitos de horário.
-    </p>
-    <div class="hero-cta">
-      <a href="#agendamento" class="btn-primary">Agendar agora</a>
-      <a href="#servicos" class="btn-secondary">Ver serviços</a>
-    </div>
-  </div>
-
-  <!-- Cartão ilustrativo. Antes mostrava números que nunca foram medidos
-       ("98% Satisfação", "0 Conflitos"), um profissional ("Ana") que o sistema
-       não escolhe e o status "Confirmado", que não existe. Agora mostra só o
-       que o PetAgenda realmente faz, com a etiqueta "Exemplo ilustrativo". -->
-  <div class="hero-visual" aria-label="Exemplo ilustrativo de agendamento">
-    <div class="hero-card">
-      <div class="paw-float paw1" aria-hidden="true"><svg class="paw-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></div>
-      <div class="paw-float paw2" aria-hidden="true"><svg class="paw-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></div>
-      <span class="tag-exemplo">Exemplo ilustrativo</span>
-      <p style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;">Como fica o seu pedido</p>
-      <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--warm);border-radius:14px;">
-        <div style="font-size:2rem;" aria-hidden="true">🐕</div>
-        <div>
-          <div style="font-weight:600;color:var(--green);font-size:.95rem;">Rex – Banho & Tosa</div>
-          <div style="color:#6B5D4D;font-size:.8rem;">Sexta · 14:00 · 75 min · com Ana</div>
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero" id="inicio">
+  <div class="container">
+    <div class="row align-items-center g-4 g-lg-5">
+      <div class="col-lg-6">
+        <span class="selo mb-4"><span class="bolinha" aria-hidden="true"><i class="bi bi-heart-fill"></i></span> Pet shop em Timbiras – MA</span>
+        <h1 class="mb-4">Agende o cuidado do seu pet <em>sem ligar</em></h1>
+        <p class="lead mb-4">Banho, tosa e consulta veterinária em poucos cliques. Você escolhe um horário que está realmente livre, vê quem vai atender e recebe um código para consultar ou cancelar quando quiser.</p>
+        <div class="d-flex flex-wrap gap-3 mb-4">
+          <a href="#agendamento" class="btn btn-ambar btn-lg btn-pulso"><i class="bi bi-calendar-heart me-2" aria-hidden="true"></i>Agendar agora</a>
+          <a href="#servicos" class="btn btn-outline-primary btn-lg">Ver serviços e preços</a>
         </div>
-        <div style="margin-left:auto;background:#FFF3CD;color:#856404;font-size:.7rem;font-weight:600;padding:.3rem .7rem;border-radius:50px;">Pendente</div>
+        <ul class="lista-check duas-colunas">
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Só horários livres, sem choque</li>
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Preço e duração antes de confirmar</li>
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Você sabe quem vai atender</li>
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Consulte e cancele pela internet</li>
+        </ul>
       </div>
-      <div class="linha-exemplo"><span>Seu código para consultar ou cancelar</span><code>K7P2QM</code></div>
-      <div class="stat-row">
-        <div class="stat">
-          <div class="stat-num" aria-hidden="true">👩‍⚕️</div>
-          <div class="stat-lbl">Quem vai atender</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" aria-hidden="true">📅</div>
-          <div class="stat-lbl">Só horários livres</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" aria-hidden="true">⚠️</div>
-          <div class="stat-lbl">Alerta de saúde</div>
+
+      <!-- Ilustração: um celular com um pedido de exemplo. Mostra só o que o sistema
+           faz de verdade (status Pendente, quem atende, código) e tem a etiqueta
+           "Exemplo ilustrativo", como pediu a auditoria de interface. -->
+      <div class="col-lg-6">
+        <div class="hero-arte" role="img" aria-label="Exemplo ilustrativo de um agendamento no celular: Rex, Banho e Tosa, sexta às 14:00 com Ana, status Pendente e código K7P2QM">
+          <div class="blob" aria-hidden="true"></div>
+          <div class="blob blob-2" aria-hidden="true"></div>
+          <div class="flutuante flutuante-1" aria-hidden="true"><i class="bi bi-shield-check"></i> Sem choque de horário</div>
+          <div class="flutuante flutuante-2" aria-hidden="true"><i class="bi bi-person-badge"></i> Quem vai atender</div>
+          <div class="celular" aria-hidden="true">
+            <div class="celular-notch"></div>
+            <div class="celular-tela">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong class="text-verde small">Seu pedido</strong>
+                <span class="tag-exemplo">Exemplo ilustrativo</span>
+              </div>
+              <div class="mini-card mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-3">🐕</span>
+                  <div class="flex-grow-1 lh-sm">
+                    <div class="fw-bold text-verde small">Rex · Banho &amp; Tosa</div>
+                    <div class="text-suave" style="font-size:.72rem">Sexta · 14:00 · 75 min</div>
+                  </div>
+                  <span class="status status-Pendente" style="font-size:.6rem">Pendente</span>
+                </div>
+                <div class="mt-2 chip chip-responsavel" style="font-size:.7rem"><i class="bi bi-person-check-fill"></i> Atendimento com Ana</div>
+              </div>
+              <div class="small fw-bold text-verde mb-1" style="font-size:.72rem">Horários livres na sexta</div>
+              <div class="d-flex flex-wrap gap-1 mb-2">
+                <span class="chip" style="font-size:.68rem">13:00</span>
+                <span class="chip" style="font-size:.68rem">13:30</span>
+                <span class="chip text-white" style="font-size:.68rem;background:var(--pa-verde)">14:00</span>
+                <span class="chip" style="font-size:.68rem">15:30</span>
+              </div>
+              <div class="mini-card text-center">
+                <div class="text-suave" style="font-size:.68rem">Código para consultar ou cancelar</div>
+                <span class="mini-codigo d-inline-block mt-1">K7P2QM</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="servicos">
-  <div class="section-head reveal">
-    <span class="section-label">O que oferecemos</span>
-    <h2>Serviços disponíveis</h2>
-    <p class="section-sub">Tudo que seu pet precisa, com preço e duração claros e horários sem conflitos.</p>
-  </div>
-
-  <!-- Os cards são montados a partir do banco (GET /api/servicos): nome, texto,
-       preço, duração e quem atende. Serviço cadastrado ou desativado no painel
-       (UC07) aparece ou some daqui sozinho, e a página nunca mostra dois preços. -->
-  <div class="cards-grid" id="cardsServicos" aria-live="polite">
-    <p class="card-carregando">Carregando serviços...</p>
-  </div>
-</section>
-
-<section id="como-funciona">
-  <div class="section-head reveal" style="text-align:center;">
-    <span class="section-label">Simples assim</span>
-    <h2>Como funciona o agendamento</h2>
-    <p class="section-sub" style="margin:0 auto;">Em poucos passos você pede seu horário, sem ligações e sem filas.</p>
-  </div>
-
-  <div class="steps">
-    <div class="step reveal">
-      <div class="step-num">1</div>
-      <h3>Preencha o formulário</h3>
-      <p>Informe o nome do tutor, do pet, o serviço e um dos horários livres.</p>
+<!-- ═══════════ POR QUE AGENDAR AQUI ═══════════ -->
+<section class="secao bg-white" id="vantagens">
+  <div class="container">
+    <div class="text-center mx-auto mb-5 revelar" style="max-width:720px">
+      <span class="rotulo-secao"><i class="bi bi-stars" aria-hidden="true"></i> Por que agendar online</span>
+      <h2 class="titulo-secao">Menos ligação, menos espera e <em>nenhuma confusão</em> de horário</h2>
+      <p class="sub-secao mx-auto">O agendamento vai direto para a agenda da equipe. Nada se perde em papel ou em conversa de WhatsApp.</p>
     </div>
-    <div class="step reveal">
-      <div class="step-num">2</div>
-      <h3>Sistema valida a disponibilidade</h3>
-      <p>O PetAgenda verifica automaticamente os horários livres, sem conflitos.</p>
-    </div>
-    <div class="step reveal">
-      <div class="step-num">3</div>
-      <h3>Receba a confirmação</h3>
-      <p>Você recebe um <strong>código</strong> e vê quem vai atender. O pedido fica <strong>Pendente</strong> até o pet shop confirmar pelo telefone.</p>
-    </div>
-    <div class="step reveal">
-      <div class="step-num">4</div>
-      <h3>Compareça no horário</h3>
-      <p>Chegue tranquilo! Tudo estará preparado para receber você e seu pet.</p>
+    <div class="row g-4">
+      <div class="col-md-4 revelar">
+        <div class="card-pa">
+          <span class="icone-redondo verde"><i class="bi bi-calendar2-check" aria-hidden="true"></i></span>
+          <h3>Horários de verdade</h3>
+          <p>A página mostra só os horários livres para o serviço escolhido. Se alguém pegar o mesmo horário antes, o sistema avisa na hora.</p>
+        </div>
+      </div>
+      <div class="col-md-4 revelar">
+        <div class="card-pa">
+          <span class="icone-redondo ambar"><i class="bi bi-person-heart" aria-hidden="true"></i></span>
+          <h3>Você sabe quem atende</h3>
+          <p>Cada serviço tem um profissional responsável. O nome dele aparece no card do serviço e na confirmação do pedido.</p>
+        </div>
+      </div>
+      <div class="col-md-4 revelar">
+        <div class="card-pa">
+          <span class="icone-redondo"><i class="bi bi-key" aria-hidden="true"></i></span>
+          <h3>Controle na sua mão</h3>
+          <p>Ao agendar você recebe um código. Com ele e o seu telefone, consulte ou cancele em Meus agendamentos, sem precisar ligar.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="agendamento">
-  <div class="section-head reveal">
-    <span class="section-label">Solicite agora</span>
-    <h2>Agende um horário</h2>
-    <p class="section-sub">Preencha o formulário e nossa equipe entrará em contato para confirmar.</p>
+<!-- ═══════════ SERVIÇOS (vêm do banco) ═══════════ -->
+<section class="secao" id="servicos">
+  <div class="container">
+    <div class="row align-items-end g-3 mb-5">
+      <div class="col-lg-7 revelar">
+        <span class="rotulo-secao"><i class="bi bi-scissors" aria-hidden="true"></i> Serviços</span>
+        <h2 class="titulo-secao mb-2">Tudo o que o seu pet precisa, <em>com preço claro</em></h2>
+        <p class="sub-secao mb-0">Preço, duração e quem vai atender, sem surpresa na hora de pagar.</p>
+      </div>
+      <div class="col-lg-5 text-lg-end revelar">
+        <a href="#agendamento" class="btn btn-primary">Escolher serviço e horário <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></a>
+      </div>
+    </div>
+    <!-- Os cards são montados a partir do banco (GET /api/servicos): nome, texto,
+         preço, duração e quem atende. Serviço cadastrado ou desativado no painel
+         (UC07) aparece ou some daqui sozinho, e a página nunca mostra dois preços. -->
+    <div class="row g-4" id="cardsServicos" aria-live="polite">
+      <div class="col-12 text-center text-suave py-4">
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> Carregando serviços...
+      </div>
+    </div>
   </div>
+</section>
 
-  <div class="form-wrap">
-    <div class="form-info reveal">
-      <h3>Por que escolher o PetAgenda?</h3>
-      <ul class="info-list">
-        <li>Só aparecem horários realmente livres</li>
-        <li>O sistema bloqueia horários que se sobrepõem</li>
-        <li>Preço e duração do serviço antes de confirmar</li>
-        <li>Você sabe quem vai atender o seu pet</li>
-        <li>Restrições de saúde do pet chegam destacadas à equipe</li>
-        <li>Consulte ou cancele pela internet com o seu código</li>
-        <li>Seus dados ficam visíveis só para a equipe, com login</li>
-      </ul>
-      <div class="info-extra">
-        <p><span aria-hidden="true">🕗</span> <strong>Horário de atendimento:</strong> das 08:00 às 18:00, de 30 em 30 minutos.</p>
-        <p><span aria-hidden="true">🔎</span> <strong>Já agendou?</strong> <a href="meus-agendamentos.html">Consulte ou cancele em Meus agendamentos</a> com o telefone e o código.</p>
+<!-- ═══════════ FAIXA VERDE: RECURSOS ═══════════ -->
+<div class="onda bg-creme" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="#2D5016" d="M0,48 C240,90 480,0 720,28 C960,56 1200,80 1440,36 L1440,80 L0,80 Z"/></svg></div>
+<section class="secao bg-verde pt-4">
+  <div class="container">
+    <div class="row g-4 g-lg-5 align-items-center">
+      <div class="col-lg-5 revelar">
+        <span class="rotulo-secao"><i class="bi bi-shield-heart" aria-hidden="true"></i> Muito além da agenda</span>
+        <h2 class="titulo-secao">Cuidado e segurança <em>em cada detalhe</em></h2>
+        <p class="sub-secao">O PetAgenda organiza o dia do pet shop e protege o seu pet e os seus dados.</p>
+        <a href="#agendamento" class="btn btn-ambar mt-3">Quero agendar</a>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-4">
+          <div class="col-sm-6 revelar"><div class="recurso">
+            <span class="icone-redondo"><i class="bi bi-heart-pulse" aria-hidden="true"></i></span>
+            <div><h3>Alerta de saúde</h3><p>Alergias e restrições do pet chegam em destaque para a equipe.</p></div>
+          </div></div>
+          <div class="col-sm-6 revelar"><div class="recurso">
+            <span class="icone-redondo"><i class="bi bi-slash-circle" aria-hidden="true"></i></span>
+            <div><h3>Sem choque de horário</h3><p>Dois atendimentos do mesmo profissional nunca se sobrepõem.</p></div>
+          </div></div>
+          <div class="col-sm-6 revelar"><div class="recurso">
+            <span class="icone-redondo"><i class="bi bi-lock" aria-hidden="true"></i></span>
+            <div><h3>Dados protegidos</h3><p>Só a equipe, com login e senha, vê seus dados. Seguimos a LGPD.</p></div>
+          </div></div>
+          <div class="col-sm-6 revelar"><div class="recurso">
+            <span class="icone-redondo"><i class="bi bi-phone" aria-hidden="true"></i></span>
+            <div><h3>Funciona no celular</h3><p>Agende do computador ou do celular, do jeito que preferir.</p></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="onda bg-creme" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="#2D5016" d="M0,0 L1440,0 L1440,40 C1200,80 960,20 720,44 C480,68 240,10 0,40 Z"/></svg></div>
+
+<!-- ═══════════ COMPARATIVO: ANTES × DEPOIS ═══════════ -->
+<section class="secao pt-5">
+  <div class="container">
+    <div class="text-center mx-auto mb-5 revelar" style="max-width:700px">
+      <span class="rotulo-secao"><i class="bi bi-arrow-left-right" aria-hidden="true"></i> Comparativo</span>
+      <h2 class="titulo-secao">Do caderno e do WhatsApp para <em>uma agenda só</em></h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-6 col-lg-5 revelar">
+        <div class="comparativo comparativo-antes">
+          <h3><i class="bi bi-journal-x" aria-hidden="true"></i> Agenda de papel e WhatsApp</h3>
+          <ul class="list-unstyled mb-0 mt-3">
+            <li><i class="bi bi-x-circle-fill" aria-hidden="true"></i> Você liga ou manda mensagem e espera a resposta</li>
+            <li><i class="bi bi-x-circle-fill" aria-hidden="true"></i> Dois clientes podem ser marcados no mesmo horário</li>
+            <li><i class="bi bi-x-circle-fill" aria-hidden="true"></i> A alergia do pet fica esquecida numa conversa</li>
+            <li><i class="bi bi-x-circle-fill" aria-hidden="true"></i> Para cancelar, é preciso ligar de novo</li>
+            <li><i class="bi bi-x-circle-fill" aria-hidden="true"></i> Preço e duração só perguntando</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-5 revelar">
+        <div class="comparativo comparativo-depois">
+          <span class="fita">Com o PetAgenda</span>
+          <h3><i class="bi bi-calendar-check" aria-hidden="true"></i> Agendamento online</h3>
+          <ul class="list-unstyled mb-0 mt-3">
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Você mesmo escolhe um horário livre, a qualquer hora</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> O sistema bloqueia horários que se sobrepõem</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Restrições de saúde aparecem em vermelho para a equipe</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Cancele pela internet com o seu código</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Preço, duração e responsável na tela</li>
+          </ul>
+        </div>
       </div>
     </div>
 
-    <div>
-    <!-- Aparece depois do envio: o código fica na tela (o aviso some em 7 s) -->
-    <div class="confirmacao" id="confirmacao" hidden tabindex="-1">
-      <h3>Pedido registrado! 🐾</h3>
-      <p id="confirmacaoTexto"></p>
-      <p>Guarde este código para consultar ou cancelar em <a href="meus-agendamentos.html">Meus agendamentos</a>:</p>
-      <div class="codigo" id="confirmacaoCodigo"></div>
-      <p style="font-size:.88rem;color:#6B5D4D;">Status: <strong>Pendente</strong>. O pet shop confirma pelo telefone informado.</p>
-      <button type="button" id="btnNovoPedido">Fazer outro agendamento</button>
+    <!-- Números: só fatos do sistema (regras de horário e serviços do banco),
+         nada de satisfação ou clientes que nunca foram medidos. -->
+    <div class="numeros-caixa mt-5 revelar">
+      <div class="row row-cols-2 row-cols-md-4 g-0">
+        <div class="col"><div class="numero"><div class="numero-valor" id="numServicos">–</div><div class="numero-rotulo">serviços para agendar</div></div></div>
+        <div class="col"><div class="numero"><div class="numero-valor">8h<small>–</small>18h</div><div class="numero-rotulo">horário de atendimento</div></div></div>
+        <div class="col"><div class="numero"><div class="numero-valor">30<small> min</small></div><div class="numero-rotulo">entre um horário e outro</div></div></div>
+        <div class="col"><div class="numero"><div class="numero-valor">24<small> h</small></div><div class="numero-rotulo">para pedir pela internet</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COMO FUNCIONA ═══════════ -->
+<section class="secao bg-white" id="como-funciona">
+  <div class="container">
+    <div class="text-center mx-auto mb-5 revelar" style="max-width:680px">
+      <span class="rotulo-secao"><i class="bi bi-signpost-split" aria-hidden="true"></i> Simples assim</span>
+      <h2 class="titulo-secao">Como funciona o <em>agendamento</em></h2>
+      <p class="sub-secao mx-auto">Quatro passos, sem ligação e sem fila.</p>
+    </div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4 passos">
+      <div class="col revelar"><div class="passo">
+        <div class="passo-num">1</div>
+        <h3>Escolha o serviço</h3>
+        <p>Veja preço, duração e quem vai atender.</p>
+      </div></div>
+      <div class="col revelar"><div class="passo">
+        <div class="passo-num">2</div>
+        <h3>Escolha data e horário</h3>
+        <p>Aparecem só os horários livres, sem conflito.</p>
+      </div></div>
+      <div class="col revelar"><div class="passo">
+        <div class="passo-num">3</div>
+        <h3>Receba o seu código</h3>
+        <p>O pedido fica <strong>Pendente</strong> até o pet shop confirmar pelo telefone.</p>
+      </div></div>
+      <div class="col revelar"><div class="passo">
+        <div class="passo-num">4</div>
+        <h3>Compareça no horário</h3>
+        <p>Tudo estará preparado para receber você e o seu pet.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ AGENDAMENTO ═══════════ -->
+<section class="secao" id="agendamento">
+  <div class="container">
+    <div class="text-center mx-auto mb-5 revelar" style="max-width:680px">
+      <span class="rotulo-secao"><i class="bi bi-calendar-plus" aria-hidden="true"></i> Agende agora</span>
+      <h2 class="titulo-secao">Reserve o horário do <em>seu pet</em></h2>
+      <p class="sub-secao mx-auto">Preencha o formulário. A equipe confirma pelo telefone informado.</p>
     </div>
 
-    <form id="formAgendamento" class="reveal">
-      <div class="form-row">
-        <label>
-          Nome do Tutor
-          <input type="text" id="nomeTutor" maxlength="100" autocomplete="name" placeholder="Ex: João Silva" required/>
-        </label>
-        <label>
-          Telefone (com DDD)
-          <input type="tel" id="telefone" inputmode="tel" autocomplete="tel" placeholder="(99) 98888-7777" required/>
-        </label>
+    <div class="row g-4 align-items-stretch">
+      <div class="col-lg-4 revelar">
+        <aside class="lateral-agendar">
+          <h3 class="h4 mb-3">Antes de agendar</h3>
+          <ul class="lista-check mb-4">
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Só aparecem horários realmente livres</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Preço e duração antes de confirmar</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Você vê quem vai atender o seu pet</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Restrições de saúde chegam destacadas à equipe</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Seus dados ficam visíveis só para a equipe</li>
+          </ul>
+          <div class="d-grid gap-3 position-relative" style="z-index:1">
+            <div class="info-pilula"><i class="bi bi-clock" aria-hidden="true"></i><div><strong>Horário de atendimento</strong><br><span class="small">das 08:00 às 18:00, de 30 em 30 minutos.</span></div></div>
+            <div class="info-pilula"><i class="bi bi-search" aria-hidden="true"></i><div><strong>Já agendou?</strong><br><span class="small"><a href="meus-agendamentos.html">Consulte ou cancele em Meus agendamentos</a> com o telefone e o código.</span></div></div>
+          </div>
+        </aside>
       </div>
 
-      <div class="form-row">
-        <label>
-          Nome do Pet
-          <input type="text" id="nomePet" maxlength="50" placeholder="Ex: Rex" required/>
-        </label>
-        <label>
-          Espécie
-          <select id="especie" required>
-            <option value="" disabled selected>Selecione...</option>
-            <option>Cão</option>
-            <option>Gato</option>
-            <option>Outro</option>
-          </select>
-        </label>
+      <div class="col-lg-8">
+        <!-- Aparece depois do envio: o código fica na tela (o aviso some em 7 s) -->
+        <div class="confirmacao" id="confirmacao" hidden tabindex="-1">
+          <div class="confirmacao-icone" aria-hidden="true"><i class="bi bi-check2-circle"></i></div>
+          <h3 class="h2">Pedido registrado! 🐾</h3>
+          <p id="confirmacaoTexto" class="mb-3"></p>
+          <p class="mb-0">Guarde este código para consultar ou cancelar em <a href="meus-agendamentos.html">Meus agendamentos</a>:</p>
+          <div class="codigo-grande" id="confirmacaoCodigo"></div>
+          <p class="small text-suave">Status: <span class="status status-Pendente">Pendente</span> O pet shop confirma pelo telefone informado.</p>
+          <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+            <button type="button" class="btn btn-primary" id="btnNovoPedido"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Fazer outro agendamento</button>
+            <a href="meus-agendamentos.html" class="btn btn-outline-primary">Ver meus agendamentos</a>
+          </div>
+        </div>
+
+        <form id="formAgendamento" class="form-caixa revelar">
+          <div class="etapa-form"><span class="num">1</span> Seus dados</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="nomeTutor">Nome do tutor</label>
+              <input type="text" class="form-control" id="nomeTutor" maxlength="100" autocomplete="name" placeholder="Ex: João Silva" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="telefone">Telefone (com DDD)</label>
+              <input type="tel" class="form-control" id="telefone" inputmode="tel" autocomplete="tel" placeholder="(99) 98888-7777" required>
+            </div>
+          </div>
+
+          <div class="etapa-form"><span class="num">2</span> Sobre o pet</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="nomePet">Nome do pet</label>
+              <input type="text" class="form-control" id="nomePet" maxlength="50" placeholder="Ex: Rex" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="especie">Espécie</label>
+              <select class="form-select" id="especie" required>
+                <option value="" disabled selected>Selecione...</option>
+                <option>Cão</option>
+                <option>Gato</option>
+                <option>Outro</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="raca">Raça <span class="text-suave fw-normal">(opcional)</span></label>
+              <input type="text" class="form-control" id="raca" maxlength="50" placeholder="Ex: Labrador">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="idade">Idade em anos <span class="text-suave fw-normal">(opcional)</span></label>
+              <input type="number" class="form-control" id="idade" min="0" max="40" inputmode="numeric" placeholder="Ex: 3">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="restricoes"><i class="bi bi-heart-pulse text-danger me-1" aria-hidden="true"></i>Restrições de saúde ou alergias</label>
+              <input type="text" class="form-control" id="restricoes" maxlength="500" placeholder="Ex: alergia a shampoo com perfume">
+            </div>
+          </div>
+
+          <div class="etapa-form"><span class="num">3</span> Serviço e horário</div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="servico">Serviço desejado</label>
+              <select class="form-select" id="servico" required aria-describedby="dicaResponsavel">
+                <option value="" disabled selected>Carregando serviços...</option>
+              </select>
+              <p class="dica-responsavel mt-2 mb-0" id="dicaResponsavel" aria-live="polite"></p>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="data">Data</label>
+              <input type="date" class="form-control" id="data" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="horario">Horário disponível</label>
+              <select class="form-select" id="horario" required>
+                <option value="">Escolha serviço e data</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="obs">Observações <span class="text-suave fw-normal">(opcional)</span></label>
+              <textarea class="form-control" id="obs" rows="3" maxlength="1000" placeholder="Alguma informação importante sobre o seu pet..."></textarea>
+            </div>
+          </div>
+
+          <div class="etapa-form"><span class="num">4</span> Privacidade</div>
+          <!-- LGPD (Lei 13.709/2018): informar, no ponto de coleta, para que os dados
+               servem (art. 6º, I e VI; art. 9º) e como o titular exerce seus direitos (art. 18). -->
+          <p class="aviso-privacidade" id="avisoPrivacidade">
+            <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>
+            Usamos seu nome e telefone só para confirmar e organizar este atendimento.
+            Os dados do pet ajudam a equipe a cuidar dele com segurança. Nada é
+            compartilhado com terceiros. Veja o <a href="privacidade.html" target="_blank" rel="noopener">aviso de privacidade</a>.
+          </p>
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="aceitePrivacidade" required aria-describedby="avisoPrivacidade">
+            <label class="form-check-label" for="aceitePrivacidade">Li o aviso de privacidade e concordo com o uso dos meus dados para este agendamento.</label>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg" id="btnEnviar"><i class="bi bi-calendar-check me-2" aria-hidden="true"></i>Solicitar agendamento</button>
+          </div>
+        </form>
       </div>
+    </div>
+  </div>
+</section>
 
-      <div class="form-row">
-        <label>
-          Raça
-          <input type="text" id="raca" maxlength="50" placeholder="Ex: Labrador"/>
-        </label>
-        <label>
-          Idade do pet (anos, opcional)
-          <input type="number" id="idade" min="0" max="40" inputmode="numeric" placeholder="Ex: 3"/>
-        </label>
+<!-- ═══════════ DÚVIDAS (accordion do Bootstrap) ═══════════ -->
+<section class="secao bg-white" id="duvidas">
+  <div class="container">
+    <div class="row g-4 g-lg-5">
+      <div class="col-lg-4 revelar">
+        <span class="rotulo-secao"><i class="bi bi-question-circle" aria-hidden="true"></i> Dúvidas</span>
+        <h2 class="titulo-secao">Perguntas <em>frequentes</em></h2>
+        <p class="sub-secao">Não achou a sua resposta? Fale com o pet shop pessoalmente ou pelo telefone.</p>
       </div>
-
-      <label>
-        Restrições de saúde / alergias
-        <input type="text" id="restricoes" maxlength="500" placeholder="Ex: alergia a shampoo com perfume"/>
-      </label>
-
-      <label>
-        Serviço desejado
-        <select id="servico" required aria-describedby="dicaResponsavel">
-          <option value="" disabled selected>Carregando serviços...</option>
-        </select>
-      </label>
-      <p class="dica-responsavel" id="dicaResponsavel" aria-live="polite"></p>
-
-      <div class="form-row">
-        <label>
-          Data
-          <input type="date" id="data" required/>
-        </label>
-        <label>
-          Horário disponível
-          <select id="horario" required>
-            <option value="">Escolha serviço e data</option>
-          </select>
-        </label>
+      <div class="col-lg-8 revelar">
+        <div class="accordion accordion-pa" id="faq">
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">Preciso ligar para confirmar?</button></h3>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faq"><div class="accordion-body">Não. Você faz o pedido pelo site e ele entra na agenda como <strong>Pendente</strong>. A equipe confirma pelo telefone que você informou.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">Posso escolher o profissional?</button></h3>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Cada serviço tem um profissional responsável, porque a equipe é pequena. Você não escolhe, mas vê o nome de quem vai atender no card do serviço e na confirmação.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">Como consulto ou cancelo um agendamento?</button></h3>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Entre em <a href="meus-agendamentos.html">Meus agendamentos</a> com o telefone e o código de 6 caracteres que apareceu na confirmação. Lá você vê seus pedidos e pode cancelar os que ainda não começaram.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">Pago pelo site?</button></h3>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Não. O site só agenda. O pagamento é feito direto no pet shop, no dia do atendimento.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">Quem vê os meus dados?</button></h3>
+            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Só a equipe do pet shop, depois de entrar com login e senha. Nada é compartilhado com terceiros. Veja o <a href="privacidade.html">aviso de privacidade</a>.</div></div>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+</section>
 
-      <label>
-        Observações (opcional)
-        <textarea id="obs" maxlength="1000" placeholder="Alguma informação importante sobre seu pet..."></textarea>
-      </label>
-
-      <!-- LGPD (Lei 13.709/2018): informar, no ponto de coleta, para que os dados
-           servem (art. 6º, I e VI; art. 9º) e como o titular exerce seus direitos (art. 18). -->
-      <p class="aviso-privacidade" id="avisoPrivacidade">
-        Usamos seu nome e telefone só para confirmar e organizar este atendimento.
-        Os dados do pet ajudam a equipe a cuidar dele com segurança. Nada é
-        compartilhado com terceiros. Veja o <a href="privacidade.html" target="_blank" rel="noopener">aviso de privacidade</a>.
-      </p>
-      <label class="consentimento">
-        <input type="checkbox" id="aceitePrivacidade" required aria-describedby="avisoPrivacidade"/>
-        <span>Li o aviso de privacidade e concordo com o uso dos meus dados para este agendamento.</span>
-      </label>
-
-      <button type="submit" class="btn-form" id="btnEnviar"><span aria-hidden="true">🐾</span> Solicitar Agendamento</button>
-    </form>
+<!-- ═══════════ CHAMADA FINAL ═══════════ -->
+<section class="secao pt-0 bg-white">
+  <div class="container">
+    <div class="cta-final revelar">
+      <svg class="pata-fundo" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg>
+      <div class="row align-items-center g-4 position-relative">
+        <div class="col-lg-8">
+          <h2 class="titulo-secao mb-2">Seu pet merece o melhor cuidado</h2>
+          <p class="mb-0 fs-5">Escolha o serviço, veja os horários livres e receba o seu código agora mesmo.</p>
+        </div>
+        <div class="col-lg-4 d-flex flex-wrap gap-2 justify-content-lg-end">
+          <a href="#agendamento" class="btn btn-ambar btn-lg">Agendar agora</a>
+          <a href="meus-agendamentos.html" class="btn btn-outline-light btn-lg">Meus agendamentos</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 </main>
 
-<footer>
-  <div>
-    <div class="footer-logo">Pet<span>Agenda</span></div>
-    <p style="margin-top:.4rem;">Timbiras – MA · Protótipo acadêmico (TCC)</p>
-  </div>
-  <p>© 2026 PetAgenda. Todos os direitos reservados.</p>
-  <div class="footer-links">
-    <a href="#servicos">Serviços</a>
-    <a href="#como-funciona">Como funciona</a>
-    <a href="#agendamento">Agendar</a>
-    <a href="meus-agendamentos.html">Meus agendamentos</a>
-    <a href="privacidade.html">Privacidade</a>
+<!-- ═══════════ RODAPÉ ═══════════ -->
+<footer class="rodape pt-5">
+  <div class="container">
+    <div class="row g-4 pb-4">
+      <div class="col-lg-4">
+        <a class="marca marca-clara mb-3" href="#inicio">
+          <span class="marca-icone" aria-hidden="true"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="14" ry="12"/><circle cx="14" cy="26" r="7"/><circle cx="25" cy="14" r="7"/><circle cx="39" cy="14" r="7"/><circle cx="50" cy="26" r="7"/></svg></span>
+          <span class="marca-texto">Pet<span>Agenda</span></span>
+        </a>
+        <p>Agendamento online para pequenos pet shops: menos papel, menos ligação e nenhum horário em conflito.</p>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h3>Navegue</h3>
+        <ul>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#como-funciona">Como funciona</a></li>
+          <li><a href="#agendamento">Agendar</a></li>
+          <li><a href="#duvidas">Dúvidas</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-3">
+        <h3>Para você</h3>
+        <ul>
+          <li><a href="meus-agendamentos.html">Meus agendamentos</a></li>
+          <li><a href="privacidade.html">Aviso de privacidade</a></li>
+          <li><a href="login.html">Área da equipe</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3">
+        <h3>Atendimento</h3>
+        <ul>
+          <li><i class="bi bi-geo-alt-fill me-2" aria-hidden="true"></i>Timbiras – MA</li>
+          <li><i class="bi bi-clock-fill me-2" aria-hidden="true"></i>08:00 às 18:00</li>
+          <li><i class="bi bi-mortarboard-fill me-2" aria-hidden="true"></i>Protótipo acadêmico (TCC)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rodape-base py-3 d-flex flex-wrap justify-content-between gap-2">
+      <span>© <span data-ano>2026</span> PetAgenda. Todos os direitos reservados.</span>
+      <span>Feito com HTML5, CSS3, JavaScript, Bootstrap e Spring Boot.</span>
+    </div>
   </div>
 </footer>
 
-<!-- aria-live: o leitor de tela anuncia a mensagem quando ela muda (WCAG 4.1.3) -->
-<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<!-- Botões flutuantes: agendar e voltar ao topo -->
+<div class="flutuante-agendar">
+  <a href="#inicio" class="btn btn-light btn-redondo shadow" aria-label="Voltar ao topo"><i class="bi bi-arrow-up" aria-hidden="true"></i></a>
+  <a href="#agendamento" class="btn btn-ambar shadow"><i class="bi bi-calendar-plus me-1" aria-hidden="true"></i> Agendar</a>
+</div>
 
+<!-- Toast do Bootstrap. aria-live: o leitor de tela anuncia a mensagem (WCAG 4.1.3) -->
+<div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index:1090">
+  <div id="toast" class="toast toast-pa align-items-center" role="status" aria-live="polite" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body"></div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="js/petagenda.js"></script>
 <script>
-  // Menu do celular: abre e fecha a lista de links (telas até 900 px)
-  (function () {
-    const nav = document.getElementById('navbar');
-    const botao = document.getElementById('menuToggle');
-    function fechar() { nav.classList.remove('menu-aberto'); botao.setAttribute('aria-expanded', 'false'); }
-    botao.addEventListener('click', () => {
-      const abrir = !nav.classList.contains('menu-aberto');
-      nav.classList.toggle('menu-aberto', abrir);
-      botao.setAttribute('aria-expanded', String(abrir));
-    });
-    document.querySelectorAll('#menuLinks a').forEach(a => a.addEventListener('click', fechar));
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fechar(); });
-  })();
-
-  // ── Nav scroll ──
-  window.addEventListener('scroll', () => {
-    document.getElementById('navbar')
-      .classList.toggle('scrolled', window.scrollY > 20);
-  });
-
-  // ── Reveal on scroll ──
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 100);
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
   // ── Data mínima = hoje (pela data local, não UTC) ──
   const hoje = new Date();
   const hojeISO = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
   document.getElementById('data').min = hojeISO;
 
-  // ── Toast de sucesso ou erro ──
-  function mostrarToast(mensagem, ehErro) {
-    const toast = document.getElementById('toast');
-    // Erro usa role="alert" (anúncio imediato); sucesso usa role="status".
-    toast.setAttribute('role', ehErro ? 'alert' : 'status');
-    toast.setAttribute('aria-live', ehErro ? 'assertive' : 'polite');
-    toast.textContent = (ehErro ? '⚠️ ' : '✅ ') + mensagem;
-    toast.classList.toggle('erro', ehErro);
-    toast.classList.add('show');
-    clearTimeout(mostrarToast.timer);
-    // 7 segundos (antes 4): tempo para ler com calma (heurística H1 de Nielsen)
-    mostrarToast.timer = setTimeout(() => toast.classList.remove('show'), 7000);
-  }
-
   // ── Carrega os serviços do banco: monta os cards e o select (UC07) ──
   const selectServico = document.getElementById('servico');
   const servicosPorId = {};
-  function reais(v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); }
+
+  function montarCardServico(s) {
+    // textContent em tudo: o texto vem do banco e não deve virar código
+    const col = el('div', 'col-md-6 col-lg-4');
+    const card = el('article', 'card-pa servico-card');
+    const topo = el('div', 'd-flex justify-content-between align-items-start');
+    const ic = el('span', 'icone-redondo', s.icone || '🐾');
+    ic.setAttribute('aria-hidden', 'true');
+    const dur = el('span', 'chip');
+    dur.append(icone('clock'), ' ' + s.duracaoMinutos + ' min');
+    topo.append(ic, dur);
+    card.appendChild(topo);
+    card.appendChild(el('h3', null, s.descricao));
+    card.appendChild(el('p', null, s.detalhes || ''));
+
+    const rodape = el('div', 'servico-rodape d-flex justify-content-between align-items-center gap-2 flex-wrap');
+    const preco = el('div');
+    preco.appendChild(el('div', 'small text-suave', 'Preço'));
+    preco.appendChild(el('div', 'servico-preco', reais(s.preco)));
+    rodape.appendChild(preco);
+    const agendar = el('a', 'btn btn-outline-primary btn-sm', 'Agendar');
+    agendar.href = '#agendamento';
+    agendar.setAttribute('aria-label', 'Agendar ' + s.descricao);
+    agendar.addEventListener('click', () => {
+      selectServico.value = s.id;
+      selectServico.dispatchEvent(new Event('change'));
+    });
+    rodape.appendChild(agendar);
+    card.appendChild(rodape);
+
+    if (s.responsavel) {
+      const resp = el('p', 'mt-3 mb-0 chip chip-responsavel');
+      resp.append(icone('person-check-fill'), ' Atendimento com ');
+      resp.appendChild(el('strong', null, s.responsavel));
+      card.appendChild(resp);
+    }
+    col.appendChild(card);
+    return col;
+  }
 
   fetch('/api/servicos')
     .then(r => r.json())
@@ -1023,42 +606,13 @@
       const grade = document.getElementById('cardsServicos');
       grade.replaceChildren();
       selectServico.innerHTML = '<option value="" disabled selected>Selecione um serviço...</option>';
+      document.getElementById('numServicos').textContent = servicos.length;
       if (servicos.length === 0) {
-        grade.innerHTML = '<p class="card-carregando">Nenhum serviço disponível no momento.</p>';
+        grade.appendChild(el('p', 'col-12 text-center text-suave', 'Nenhum serviço disponível no momento.'));
       }
       servicos.forEach(s => {
         servicosPorId[s.id] = s;
-
-        // Card (textContent em tudo: o texto vem do banco e não deve virar código)
-        const card = document.createElement('div');
-        card.className = 'card';
-        const icone = document.createElement('span');
-        icone.className = 'card-icon';
-        icone.setAttribute('aria-hidden', 'true');
-        icone.textContent = s.icone || '🐾';
-        const titulo = document.createElement('h3');
-        titulo.textContent = s.descricao;
-        const texto = document.createElement('p');
-        texto.textContent = s.detalhes || '';
-        const preco = document.createElement('div');
-        preco.className = 'card-price';
-        preco.textContent = reais(s.preco) + ' ';
-        const dur = document.createElement('span');
-        dur.textContent = '· ' + s.duracaoMinutos + ' min';
-        preco.appendChild(dur);
-        card.append(icone, titulo, texto, preco);
-        if (s.responsavel) {
-          const resp = document.createElement('p');
-          resp.className = 'card-responsavel';
-          resp.append('Atendimento com ');
-          const nome = document.createElement('strong');
-          nome.textContent = s.responsavel;
-          resp.appendChild(nome);
-          card.appendChild(resp);
-        }
-        grade.appendChild(card);
-
-        // Opção do formulário
+        grade.appendChild(montarCardServico(s));
         const opt = document.createElement('option');
         opt.value = s.id;
         opt.textContent = s.descricao + ' – ' + reais(s.preco) + ' (' + s.duracaoMinutos + ' min)';
@@ -1066,8 +620,8 @@
       });
     })
     .catch(() => {
-      document.getElementById('cardsServicos').innerHTML =
-        '<p class="card-carregando">Não foi possível carregar os serviços agora.</p>';
+      const grade = document.getElementById('cardsServicos');
+      grade.replaceChildren(el('p', 'col-12 text-center text-suave', 'Não foi possível carregar os serviços agora.'));
       mostrarToast('Não foi possível carregar os serviços. O servidor está rodando?', true);
     });
 
@@ -1077,10 +631,8 @@
     const dica = document.getElementById('dicaResponsavel');
     dica.replaceChildren();
     if (s && s.responsavel) {
-      dica.append('Quem vai atender: ');
-      const nome = document.createElement('strong');
-      nome.textContent = s.responsavel;
-      dica.appendChild(nome);
+      dica.append(icone('person-check-fill', 'me-1'), 'Quem vai atender: ');
+      dica.appendChild(el('strong', null, s.responsavel));
     }
   });
 
@@ -1115,20 +667,19 @@
 
   document.getElementById('btnNovoPedido').addEventListener('click', () => {
     document.getElementById('confirmacao').hidden = true;
-    const form = document.getElementById('formAgendamento');
-    form.hidden = false;
+    document.getElementById('formAgendamento').hidden = false;
     document.getElementById('nomeTutor').focus();
   });
 
   // ── Envio do formulário ──
-  document.getElementById('formAgendamento').addEventListener('submit', function(e) {
+  document.getElementById('formAgendamento').addEventListener('submit', function (e) {
     e.preventDefault();
 
     // Mostra que está enviando e evita clique duplo (heurísticas H1 e H5)
     const btnEnviar = document.getElementById('btnEnviar');
     const textoOriginal = btnEnviar.innerHTML;
     btnEnviar.disabled = true;
-    btnEnviar.textContent = 'Enviando...';
+    btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Enviando...';
 
     const dados = {
       tutor:      document.getElementById('nomeTutor').value,
