@@ -12,6 +12,7 @@ Relatórios gerados a partir do "Guia de Prompts – Auditoria do PetAgenda", co
 | `11-correcoes.md` | Correção | As 7 melhorias aplicadas (aprovadas pela dupla), resultado dos testes antes × depois e limitações |
 | `12-plano-site-x-texto.md` | Plano | Comparação entre o texto, os diagramas e o código; pacotes A e B (aprovados em 18/11) |
 | `13-diagramas-etapa3.md` | Documentação | MER, diagrama de sequência corrigido, diagrama de estados, o que mudar no draw.io, situação dos casos de uso e testes CT-14 a CT-19 |
+| `18-revisao-geral-21-11.md` | Revisão | Revisão geral do código em 21/11: 8 correções pequenas de segurança e robustez, testes antes × depois, checklist para a demonstração |
 | `prints/` | — | Prints `antes-*` e `depois-*` das telas em 360 px (celular) e 1280 px (computador), com API simulada |
 
 Não foram feitos nesta rodada: prompt 3 (banco), prompt 4 (back-end) e prompts 7 a 10 (escrita da Nota 2).

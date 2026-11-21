@@ -55,6 +55,10 @@ mvnw.cmd test -Dtest=RegraStatusTest,RegraConflitoTest,AgendamentoServiceTest
 O `AgendamentoServiceTest` prova a transação: força uma falha na última gravação e confere
 que tutor e pet não ficaram gravados.
 
+Sem o filtro `-Dtest`, o Maven roda também o `ApiApplicationTests` (sobe o sistema inteiro).
+Esse teste **precisa do MySQL ligado** com o banco `petagenda`; com o XAMPP ligado, `mvnw.cmd test`
+roda os 26 testes (8 + 8 + 9 + 1).
+
 ### Roteiro automático dos casos CT-01 a CT-21 (precisa do sistema ligado)
 Com o sistema rodando em outro terminal (`mvnw.cmd spring-boot:run`), dê dois cliques em
 `testes\rodar-testes.bat` ou rode na pasta do projeto:
@@ -85,6 +89,9 @@ CT-06 e CT-12 também precisam de print do painel no navegador.
 | Indicadores: atendimentos, ocupação da agenda, faturamento, serviço mais procurado | `GET /api/indicadores` |
 | Agenda da semana (segunda a domingo) em forma de calendário, com alerta de saúde e status | `GET /api/agendamentos?semana=AAAA-MM-DD` + aba "Agenda da semana" |
 | Proteção contra SQL injection: toda consulta usa parâmetros `?` do JdbcTemplate | todo o código Java (testado no CT-20) |
+| Sessão renovada no login (contra fixação de sessão); cookie `HttpOnly` e `SameSite=Lax` | `fazerLogin` + `application.properties` |
+| Cabeçalhos de segurança: `X-Content-Type-Options`, `X-Frame-Options` (contra clickjacking) e `Referrer-Policy` | `CabecalhosSeguranca.java` |
+| Limite de tamanho em todos os textos livres (restrições até 500, observações até 1000 caracteres) | `AgendamentoService.criar` (testado no CT-10) |
 
 ## Roteiro de testes manuais (simulação)
 Registre data, resultado obtido e print de cada caso.
@@ -120,4 +127,5 @@ Registre data, resultado obtido e print de cada caso.
 - O tutor não tem login; ele usa telefone + código do agendamento.
 - O aceite da política de privacidade não é gravado no banco.
 - Não há pagamento nem notificação por WhatsApp. O calendário é por dia e por semana (não há visão de mês).
-- A sessão usa cookie padrão do servidor, sem HTTPS (adequado para teste local, não para produção).
+- A sessão usa cookie `HttpOnly` e `SameSite=Lax`, mas o sistema roda sem HTTPS (adequado para teste local, não para produção).
+- Não há limite de tentativas de login: em produção, trocar as senhas de exemplo (`admin123`, `ana12345`) é obrigatório.
