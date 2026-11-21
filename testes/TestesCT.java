@@ -173,12 +173,13 @@ public class TestesCT {
                 agendar("Fabi", "99933332222", "Bob", 4, dia, "17:00", "", "").status,    // passa das 18:00
                 agendar("", "99933332222", "Bob", 1, dia, "17:00", "", "").status,        // sem nome
                 agendar("Fabi", "99933332222", "Bob", 99, dia, "17:00", "", "").status,   // servico inexistente
+                agendar("Fabi", "99933332222", "Bob", 1, dia, "17:00", "", "x".repeat(1001)).status, // observacao longa (revisao 21/11)
         };
         boolean todos400 = true;
         StringBuilder sb = new StringBuilder();
         for (int s : inval) { todos400 &= (s == 400); sb.append(s).append(' '); }
         registrar("CT-10 Dados invalidos", todos400,
-                "telefone curto, data passada, 07:30, Banho+Tosa 17:00, nome vazio, servico 99 -> " + sb.toString().trim() + " (esperado 400 em todos)");
+                "telefone curto, data passada, 07:30, Banho+Tosa 17:00, nome vazio, servico 99, obs com 1001 caracteres -> " + sb.toString().trim() + " (esperado 400 em todos)");
 
         // ---------------------------------------------------------------
         // CT-11 Fluxo de status e faturamento

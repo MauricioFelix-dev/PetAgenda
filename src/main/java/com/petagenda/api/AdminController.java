@@ -321,6 +321,14 @@ public class AdminController {
             throw new RegraNegocioException(HttpStatus.BAD_REQUEST, "O fim precisa ser depois do início.");
         }
         Integer idFuncionario = inteiroOuNulo(dados.get("idFuncionario"));
+        // Revisão de 21/11/2026: um profissional inexistente virava erro 500 do banco
+        if (idFuncionario != null) {
+            Integer existe = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM funcionario WHERE id_funcionario = ? AND ativo = 1", Integer.class, idFuncionario);
+            if (existe == null || existe == 0) {
+                throw new RegraNegocioException(HttpStatus.BAD_REQUEST, "Profissional inválido ou desligado.");
+            }
+        }
 
         // Atendimentos ativos que cairiam dentro do bloqueio (do profissional, ou de todos)
         List<Map<String, Object>> afetados = jdbcTemplate.queryForList(

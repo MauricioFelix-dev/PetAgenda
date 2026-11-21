@@ -485,7 +485,11 @@
             });
     }
 
-    function atualizarTela() { carregarIndicadores(); buscarAgendamentos(); }
+    function atualizarTela() {
+        // Revisão de 21/11/2026: com o campo de data apagado, a API devolvia a agenda inteira
+        if (!filtroData.value) filtroData.value = dataDeHoje();
+        carregarIndicadores(); buscarAgendamentos();
+    }
 
     // ═════════════════════════════════════════════════════════════
     // Agenda da semana (segunda a domingo, uma consulta só no servidor)

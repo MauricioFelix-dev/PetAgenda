@@ -46,6 +46,10 @@ public class AgendamentoService {
     static final LocalTime FECHAMENTO = LocalTime.of(18, 0);
     static final int INTERVALO_MINUTOS = 30;
 
+    /** Tamanho máximo dos textos livres (igual ao maxlength dos campos em index.html). */
+    static final int LIMITE_RESTRICOES = 500;
+    static final int LIMITE_OBS = 1000;
+
     /** Letras e números sem os que confundem (0/O, 1/I/L). */
     private static final String ALFABETO_CODIGO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
     private static final SecureRandom SORTEIO = new SecureRandom();
@@ -139,7 +143,14 @@ public class AgendamentoService {
         // "Falha ao gravar no banco" (achado da exploração de 18/11/2026).
         if (nomeTutor.length() > 100 || nomePet.length() > 50 || raca.length() > 50 || especie.length() > 30) {
             throw new RegraNegocioException(HttpStatus.BAD_REQUEST,
-                    "Texto longo demais: nome do tutor até 100 caracteres; nome do pet e raça até 50.");
+                    "Texto longo demais: nome do tutor até 100 caracteres; nome do pet e raça até 50; espécie até 30.");
+        }
+        // Mesmos limites dos campos da página (revisão de 21/11/2026): antes, um texto
+        // enorme enviado direto à API passava daqui e só falhava no banco (erro 500).
+        if (restricoes.length() > LIMITE_RESTRICOES || obs.length() > LIMITE_OBS) {
+            throw new RegraNegocioException(HttpStatus.BAD_REQUEST,
+                    "Texto longo demais: restrições de saúde até " + LIMITE_RESTRICOES
+                            + " caracteres e observações até " + LIMITE_OBS + ".");
         }
         if (telefone.length() < 10 || telefone.length() > 11) {
             throw new RegraNegocioException(HttpStatus.BAD_REQUEST, "Telefone inválido. Use DDD + número.");
